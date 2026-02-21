@@ -19,6 +19,8 @@ export default function Home() {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const [agentPanelOpen, setAgentPanelOpen] = useState(true);
+  const [agentPanelWidth, setAgentPanelWidth] = useState(260);
   const [liveFeedOpen, setLiveFeedOpen] = useState(true);
   const [mobileTab, setMobileTab] = useState<MobileTab>("queue");
   const isMobile = useIsMobile();
@@ -27,6 +29,17 @@ export default function Home() {
     const storedLiveFeed = window.localStorage.getItem("mc.liveFeedOpen");
     if (storedLiveFeed !== null) {
       setLiveFeedOpen(storedLiveFeed === "true");
+    }
+    const storedAgentPanelOpen = window.localStorage.getItem("mc.agentPanelOpen");
+    if (storedAgentPanelOpen !== null) {
+      setAgentPanelOpen(storedAgentPanelOpen === "true");
+    }
+    const storedAgentPanelWidth = window.localStorage.getItem("mc.agentPanelWidth");
+    if (storedAgentPanelWidth !== null) {
+      const width = Number(storedAgentPanelWidth);
+      if (!Number.isNaN(width)) {
+        setAgentPanelWidth(Math.min(420, Math.max(220, width)));
+      }
     }
     const storedMobileTab = window.localStorage.getItem("mc.mobileTab") as MobileTab | null;
     if (storedMobileTab === "queue" || storedMobileTab === "agents" || storedMobileTab === "feed") {
@@ -37,6 +50,14 @@ export default function Home() {
   useEffect(() => {
     window.localStorage.setItem("mc.liveFeedOpen", String(liveFeedOpen));
   }, [liveFeedOpen]);
+
+  useEffect(() => {
+    window.localStorage.setItem("mc.agentPanelOpen", String(agentPanelOpen));
+  }, [agentPanelOpen]);
+
+  useEffect(() => {
+    window.localStorage.setItem("mc.agentPanelWidth", String(agentPanelWidth));
+  }, [agentPanelWidth]);
 
   useEffect(() => {
     window.localStorage.setItem("mc.mobileTab", mobileTab);
@@ -76,7 +97,15 @@ export default function Home() {
       />
       <div className="flex flex-1 overflow-hidden pb-[calc(env(safe-area-inset-bottom)+72px)] md:pb-0">
         {/* Desktop sidebars */}
-        {!isMobile && <AgentPanel onAgentClick={(id) => setSelectedAgentId(id)} />}
+        {!isMobile && (
+          <AgentPanel
+            onAgentClick={(id) => setSelectedAgentId(id)}
+            isOpen={agentPanelOpen}
+            onToggle={() => setAgentPanelOpen((prev) => !prev)}
+            width={agentPanelWidth}
+            onWidthChange={setAgentPanelWidth}
+          />
+        )}
         {(!isMobile || mobileTab === "queue") && <KanbanBoard />}
         {!isMobile && (
           <LiveFeedPanel isOpen={liveFeedOpen} onToggle={() => setLiveFeedOpen(!liveFeedOpen)} />
