@@ -23,6 +23,25 @@ export default function Home() {
   const [mobileTab, setMobileTab] = useState<MobileTab>("queue");
   const isMobile = useIsMobile();
 
+  useEffect(() => {
+    const storedLiveFeed = window.localStorage.getItem("mc.liveFeedOpen");
+    if (storedLiveFeed !== null) {
+      setLiveFeedOpen(storedLiveFeed === "true");
+    }
+    const storedMobileTab = window.localStorage.getItem("mc.mobileTab") as MobileTab | null;
+    if (storedMobileTab === "queue" || storedMobileTab === "agents" || storedMobileTab === "feed") {
+      setMobileTab(storedMobileTab);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("mc.liveFeedOpen", String(liveFeedOpen));
+  }, [liveFeedOpen]);
+
+  useEffect(() => {
+    window.localStorage.setItem("mc.mobileTab", mobileTab);
+  }, [mobileTab]);
+
   const toggleTheme = () => {
     setIsDark(!isDark);
     document.documentElement.classList.toggle("dark");
@@ -55,7 +74,7 @@ export default function Home() {
         onCalendarOpen={() => setCalendarOpen(true)}
         onSearchOpen={() => setSearchOpen(true)}
       />
-      <div className="flex flex-1 overflow-hidden pb-[calc(env(safe-area-inset-bottom)+64px)] md:pb-0">
+      <div className="flex flex-1 overflow-hidden pb-[calc(env(safe-area-inset-bottom)+72px)] md:pb-0">
         {/* Desktop sidebars */}
         {!isMobile && <AgentPanel onAgentClick={(id) => setSelectedAgentId(id)} />}
         {(!isMobile || mobileTab === "queue") && <KanbanBoard />}

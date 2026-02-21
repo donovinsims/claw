@@ -20,7 +20,9 @@ type AgentPanelProps = {
 };
 
 export function AgentPanel({ onAgentClick, layout = "desktop" }: AgentPanelProps) {
-  const agents = useQuery(api.queries.getAgents) ?? [];
+  const agentsQuery = useQuery(api.queries.getAgents);
+  const agents = agentsQuery ?? [];
+  const isLoading = agentsQuery === undefined;
   const isMobileLayout = layout === "mobile";
 
   return (
@@ -38,15 +40,22 @@ export function AgentPanel({ onAgentClick, layout = "desktop" }: AgentPanelProps
       </div>
       <div className="flex-1 overflow-y-auto px-3 pb-4">
         <div className="flex flex-col gap-1.5">
+          {isLoading &&
+            Array.from({ length: 7 }).map((_, index) => (
+              <div
+                key={`agent-skeleton-${index}`}
+                className="h-14 animate-pulse rounded-[var(--radius-inner)] border border-mc-border bg-surface"
+              />
+            ))}
           {agents.map((agent) => {
             const IconComponent = iconMap[agent.icon ?? "Bot"] ?? Bot;
             return (
               <div
                 key={agent.agentId}
                 onClick={() => onAgentClick?.(agent.agentId)}
-                className="flex items-center gap-3 rounded-[var(--radius-inner)] border border-mc-border bg-surface px-3 py-2.5 transition-colors hover:bg-surface-elevated cursor-pointer"
+                className="flex min-h-11 items-center gap-3 rounded-[var(--radius-inner)] border border-mc-border bg-surface px-3 py-2.5 transition-colors hover:bg-surface-elevated cursor-pointer"
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-elevated text-text-secondary">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-inner)] bg-surface-elevated text-text-secondary">
                   <IconComponent className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">

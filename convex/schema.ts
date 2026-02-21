@@ -13,6 +13,8 @@ export default defineSchema({
     currentTask: v.optional(v.string()),
     icon: v.optional(v.string()),
     tasksCompleted: v.optional(v.number()),
+    prompt: v.optional(v.string()),
+    model: v.optional(v.string()),
   })
     .index("by_agentId", ["agentId"])
     .index("by_status", ["status"]),

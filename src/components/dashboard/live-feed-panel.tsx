@@ -5,14 +5,6 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { PanelRightClose, PanelRightOpen } from "lucide-react";
 
-type ActivityEvent = {
-  _id: string;
-  type: string;
-  agentId: string;
-  message: string;
-  createdAt: number;
-};
-
 const typeColors: Record<string, string> = {
   task_created: "bg-mc-orange",
   comment: "bg-mc-cyan",
@@ -57,13 +49,16 @@ export function LiveFeedPanel({
   const resolvedOpen = isMobileLayout ? true : isOpen;
 
   const typeFilter = tabToType[activeTab];
-  const events = useQuery(api.queries.getActivityFeed, {
+  const eventsQuery = useQuery(api.queries.getActivityFeed, {
     limit: 50,
     type: typeFilter ?? undefined,
     agentId: selectedAgent ?? undefined,
-  }) ?? [];
+  });
+  const events = useMemo(() => eventsQuery ?? [], [eventsQuery]);
 
-  const allEvents = useQuery(api.queries.getActivityFeed, { limit: 200 }) ?? [];
+  const allEventsQuery = useQuery(api.queries.getActivityFeed, { limit: 200 });
+  const allEvents = useMemo(() => allEventsQuery ?? [], [allEventsQuery]);
+  const isLoading = eventsQuery === undefined || allEventsQuery === undefined;
 
   const agentCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -94,7 +89,11 @@ export function LiveFeedPanel({
       {/* Header with toggle */}
       <div className="flex items-center gap-2 px-3 py-4">
         {onToggle && !isMobileLayout && (
-          <button onClick={onToggle} className="shrink-0 text-text-secondary hover:text-text-primary">
+          <button
+            onClick={onToggle}
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary"
+            aria-label={resolvedOpen ? "Collapse live feed" : "Expand live feed"}
+          >
             {resolvedOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
           </button>
         )}
@@ -117,7 +116,7 @@ export function LiveFeedPanel({
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-medium transition-colors ${
+                  className={`min-h-11 rounded-[var(--radius-inner)] px-2.5 py-1 font-mono text-[10px] font-medium transition-colors ${
                     activeTab === tab
                       ? "bg-mc-cyan text-white"
                       : "bg-surface-elevated text-text-secondary hover:text-text-primary"
@@ -133,7 +132,7 @@ export function LiveFeedPanel({
           <div className="flex flex-wrap gap-1.5 px-4 pb-3">
             <button
               onClick={() => setSelectedAgent(null)}
-              className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${
+              className={`min-h-11 rounded-[var(--radius-inner)] px-2.5 py-1 text-[10px] font-medium transition-colors ${
                 !selectedAgent
                   ? "bg-mc-cyan text-white"
                   : "bg-surface text-text-secondary hover:text-text-primary"
@@ -145,7 +144,7 @@ export function LiveFeedPanel({
               <button
                 key={name}
                 onClick={() => setSelectedAgent(selectedAgent === name ? null : name)}
-                className={`rounded-full px-2 py-1 text-[10px] font-medium transition-colors ${
+                className={`min-h-11 rounded-[var(--radius-inner)] px-2 py-1 text-[10px] font-medium transition-colors ${
                   selectedAgent === name
                     ? "bg-mc-cyan text-white"
                     : "bg-surface text-text-secondary hover:text-text-primary"
@@ -157,8 +156,15 @@ export function LiveFeedPanel({
           </div>
 
           {/* Activity feed */}
-          <div className="flex-1 overflow-y-auto px-4 pb-4">
+          <div className="flex-1 overflow-y-auto px-4 pb-4 [scrollbar-gutter:stable]">
             <div className="space-y-1">
+              {isLoading &&
+                Array.from({ length: 6 }).map((_, index) => (
+                  <div
+                    key={`feed-skeleton-${index}`}
+                    className="h-[56px] animate-pulse rounded-[var(--radius-inner)] bg-surface"
+                  />
+                ))}
               {events.map((event) => (
                 <div
                   key={event._id}
@@ -176,7 +182,7 @@ export function LiveFeedPanel({
                   <ChevronRight className="mt-1 h-3 w-3 shrink-0 text-text-secondary/30" />
                 </div>
               ))}
-              {events.length === 0 && (
+              {!isLoading && events.length === 0 && (
                 <div className="py-8 text-center text-xs text-text-secondary/50">No activity matching filters</div>
               )}
             </div>

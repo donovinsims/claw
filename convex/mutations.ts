@@ -11,6 +11,8 @@ export const upsertAgent = mutation({
     level: v.optional(v.string()),
     status: v.string(),
     icon: v.optional(v.string()),
+    prompt: v.optional(v.string()),
+    model: v.optional(v.string()),
   },
   returns: v.id("agents"),
   handler: async (ctx, args) => {

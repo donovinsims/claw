@@ -7,6 +7,16 @@ export const getAgents = query({
   },
 });
 
+export const getAgentByAgentId = query({
+  args: { agentId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("agents")
+      .withIndex("by_agentId", (q) => q.eq("agentId", args.agentId))
+      .unique();
+  },
+});
+
 export const getTasksByStatus = query({
   handler: async (ctx) => {
     const tasks = await ctx.db.query("tasks").order("desc").collect();
