@@ -90,20 +90,29 @@ export function CalendarView({ open, onClose }: { open: boolean; onClose: () => 
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-background" onClick={onClose}>
-      <div className="flex items-center justify-between border-b border-mc-border bg-surface px-6 py-3" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="flex items-center justify-between border-b border-mc-border bg-surface px-4 pb-3 pt-[calc(env(safe-area-inset-top)+10px)] sm:px-6 sm:pt-3"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center gap-4">
           <h2 className="text-sm font-bold text-text-primary">CALENDAR</h2>
           <div className="flex items-center gap-1">
-            <button onClick={() => setWeekOffset(weekOffset - 1)} className="rounded-full p-1 text-text-secondary hover:text-text-primary">
+            <button
+              onClick={() => setWeekOffset(weekOffset - 1)}
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface-elevated hover:text-text-primary"
+            >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               onClick={() => setWeekOffset(0)}
-              className="rounded-full bg-surface-elevated px-3 py-1 text-xs font-medium text-text-secondary"
+              className="min-h-11 rounded-[var(--radius-inner)] bg-surface-elevated px-3 py-1 text-xs font-medium text-text-secondary"
             >
               Today
             </button>
-            <button onClick={() => setWeekOffset(weekOffset + 1)} className="rounded-full p-1 text-text-secondary hover:text-text-primary">
+            <button
+              onClick={() => setWeekOffset(weekOffset + 1)}
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface-elevated hover:text-text-primary"
+            >
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
@@ -111,7 +120,11 @@ export function CalendarView({ open, onClose }: { open: boolean; onClose: () => 
             {weekDates[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })} - {weekDates[6].toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
           </span>
         </div>
-        <button onClick={onClose} className="text-text-secondary hover:text-text-primary">
+        <button
+          onClick={onClose}
+          className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface-elevated hover:text-text-primary"
+          aria-label="Close calendar"
+        >
           <X className="h-5 w-5" />
         </button>
       </div>

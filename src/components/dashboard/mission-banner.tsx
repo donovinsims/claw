@@ -21,21 +21,24 @@ export function MissionBanner() {
         <p className="text-center font-serif text-sm italic text-text-primary/80">&ldquo;{text}&rdquo;</p>
         <button
           onClick={() => { setDraft(text); setEditing(true); }}
-          className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-text-secondary/40 transition-colors hover:text-text-primary"
+          className="absolute right-3 top-1/2 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary/40 transition-colors hover:bg-surface/60 hover:text-text-primary"
         >
           <Pencil className="h-3 w-3" />
         </button>
       </div>
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setEditing(false)}>
+        <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm sm:items-center sm:justify-center" onClick={() => setEditing(false)}>
           <div
-            className="w-full max-w-md rounded-[var(--radius-outer)] border border-mc-border bg-surface-elevated p-6"
+            className="w-full rounded-t-[var(--radius-outer)] border border-mc-border bg-surface-elevated p-4 pb-[calc(env(safe-area-inset-bottom)+16px)] sm:max-w-md sm:rounded-[var(--radius-outer)] sm:p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-text-primary">Edit Mission Statement</h3>
-              <button onClick={() => setEditing(false)} className="text-text-secondary hover:text-text-primary">
+              <button
+                onClick={() => setEditing(false)}
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -48,7 +51,7 @@ export function MissionBanner() {
             <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={() => setEditing(false)}
-                className="rounded-full bg-surface px-4 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary"
+                className="min-h-11 rounded-[var(--radius-inner)] bg-surface px-4 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary"
               >
                 Cancel
               </button>
@@ -57,7 +60,7 @@ export function MissionBanner() {
                   await updateSetting({ key: "mission_statement", value: draft });
                   setEditing(false);
                 }}
-                className="rounded-full bg-mc-cyan px-4 py-1.5 text-xs font-medium text-white"
+                className="min-h-11 rounded-[var(--radius-inner)] bg-mc-cyan px-4 py-1.5 text-xs font-medium text-white"
               >
                 Save
               </button>

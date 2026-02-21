@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type FocusEvent } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { X, Bot, Shield, Sparkles, Eye, Pen, Share2, Palette, Mail, Code, BookOpen } from "lucide-react";
@@ -82,125 +82,141 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
     onClose();
   };
 
-  const set = <T,>(setter: (v: T) => void) => (v: T) => { setter(v); setHasChanges(true); };
+  const set = <T,>(setter: (v: T) => void) => (v: T) => {
+    setter(v);
+    setHasChanges(true);
+  };
+
+  const keepFieldVisible = (
+    event: FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    requestAnimationFrame(() => {
+      event.currentTarget.scrollIntoView({ block: "center", behavior: "smooth" });
+    });
+  };
 
   const ActiveIcon = iconOptions.find((i) => i.name === draftIcon)?.icon ?? Bot;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={handleClose}>
+    <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm sm:items-center sm:justify-center" onClick={handleClose}>
       <div
-        className="w-full max-w-2xl mx-4 max-h-[85vh] overflow-y-auto rounded-[var(--radius-outer)] border border-mc-border bg-surface-elevated p-6"
+        className="flex h-[100dvh] w-full flex-col border border-mc-border bg-surface-elevated sm:mx-4 sm:h-auto sm:max-h-[85vh] sm:max-w-2xl sm:rounded-[var(--radius-outer)]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface text-text-secondary">
-              <ActiveIcon className="h-5 w-5" />
+        <div className="flex-1 overflow-y-auto px-4 pb-24 pt-[calc(env(safe-area-inset-top)+12px)] sm:px-6 sm:pb-6 sm:pt-6">
+          <div className="mb-5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-inner)] bg-surface text-text-secondary">
+                <ActiveIcon className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-text-primary">{agent?.name ?? agentId}</h2>
+                <p className="text-xs text-text-secondary">{agentId}</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-text-primary">{agent?.name ?? agentId}</h2>
-              <p className="text-xs text-text-secondary">{agentId}</p>
-            </div>
+            <button
+              onClick={handleClose}
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary"
+              aria-label="Close agent details"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
-          <button onClick={handleClose} className="text-text-secondary hover:text-text-primary">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
 
-        {/* Identity */}
-        <div className="mb-4">
-          <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">NAME</label>
-          <input
-            value={draftName}
-            onChange={(e) => set(setDraftName)(e.target.value)}
-            className="w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-2.5 text-sm text-text-primary focus:outline-none focus:border-mc-cyan"
-          />
-        </div>
-
-        <div className="mb-4 flex gap-3">
-          <div className="flex-1">
-            <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">ROLE</label>
+          <div className="mb-4">
+            <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">NAME</label>
             <input
-              value={draftRole}
-              onChange={(e) => set(setDraftRole)(e.target.value)}
-              placeholder="e.g. Squad Lead"
-              className="w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-2.5 text-sm text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-mc-cyan"
+              value={draftName}
+              onChange={(e) => set(setDraftName)(e.target.value)}
+              onFocus={keepFieldVisible}
+              className="min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-2.5 text-sm text-text-primary focus:outline-none focus:border-mc-cyan"
             />
           </div>
-          <div className="w-28">
-            <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">LEVEL</label>
+
+          <div className="mb-4 flex gap-3">
+            <div className="flex-1">
+              <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">ROLE</label>
+              <input
+                value={draftRole}
+                onChange={(e) => set(setDraftRole)(e.target.value)}
+                onFocus={keepFieldVisible}
+                placeholder="e.g. Squad Lead"
+                className="min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-2.5 text-sm text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-mc-cyan"
+              />
+            </div>
+            <div className="w-28">
+              <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">LEVEL</label>
+              <select
+                value={draftLevel}
+                onChange={(e) => set(setDraftLevel)(e.target.value)}
+                onFocus={keepFieldVisible}
+                className="min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-2.5 text-sm text-text-primary focus:outline-none focus:border-mc-cyan"
+              >
+                <option value="">None</option>
+                {levelOptions.map((l) => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">MODEL</label>
             <select
-              value={draftLevel}
-              onChange={(e) => set(setDraftLevel)(e.target.value)}
-              className="w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-2.5 text-sm text-text-primary focus:outline-none focus:border-mc-cyan"
+              value={draftModel}
+              onChange={(e) => set(setDraftModel)(e.target.value)}
+              onFocus={keepFieldVisible}
+              className="min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-2.5 text-sm text-text-primary focus:outline-none focus:border-mc-cyan"
             >
-              <option value="">None</option>
-              {levelOptions.map((l) => (
-                <option key={l} value={l}>{l}</option>
+              {modelOptions.map((m) => (
+                <option key={m} value={m}>{m}</option>
               ))}
             </select>
           </div>
-        </div>
 
-        {/* Model */}
-        <div className="mb-4">
-          <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">MODEL</label>
-          <select
-            value={draftModel}
-            onChange={(e) => set(setDraftModel)(e.target.value)}
-            className="w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-2.5 text-sm text-text-primary focus:outline-none focus:border-mc-cyan"
-          >
-            {modelOptions.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-        </div>
+          <div className="mb-4">
+            <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">ICON</label>
+            <div className="flex flex-wrap gap-2">
+              {iconOptions.map(({ name, icon: Icon }) => (
+                <button
+                  key={name}
+                  onClick={() => set(setDraftIcon)(name)}
+                  className={`flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] transition-colors ${
+                    draftIcon === name
+                      ? "bg-mc-cyan text-white ring-2 ring-mc-cyan ring-offset-2 ring-offset-surface-elevated"
+                      : "bg-surface text-text-secondary hover:text-text-primary"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                </button>
+              ))}
+            </div>
+          </div>
 
-        {/* Icon */}
-        <div className="mb-4">
-          <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">ICON</label>
-          <div className="flex flex-wrap gap-2">
-            {iconOptions.map(({ name, icon: Icon }) => (
-              <button
-                key={name}
-                onClick={() => set(setDraftIcon)(name)}
-                className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
-                  draftIcon === name
-                    ? "bg-mc-cyan text-white ring-2 ring-mc-cyan ring-offset-2 ring-offset-surface-elevated"
-                    : "bg-surface text-text-secondary hover:text-text-primary"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-              </button>
-            ))}
+          <div className="mb-4">
+            <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">SYSTEM PROMPT (SOUL.md)</label>
+            <textarea
+              value={draftPrompt}
+              onChange={(e) => set(setDraftPrompt)(e.target.value)}
+              onFocus={keepFieldVisible}
+              rows={12}
+              placeholder="Enter the agent's system prompt..."
+              className="w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-3 text-sm text-text-primary font-mono placeholder:text-text-secondary/50 focus:outline-none focus:border-mc-cyan"
+            />
           </div>
         </div>
 
-        {/* Prompt */}
-        <div className="mb-4">
-          <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">SYSTEM PROMPT (SOUL.md)</label>
-          <textarea
-            value={draftPrompt}
-            onChange={(e) => set(setDraftPrompt)(e.target.value)}
-            rows={12}
-            placeholder="Enter the agent's system prompt..."
-            className="w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-3 text-sm text-text-primary font-mono placeholder:text-text-secondary/50 focus:outline-none focus:border-mc-cyan"
-          />
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-end gap-2">
+        <div className="sticky bottom-0 z-10 flex justify-end gap-2 border-t border-mc-border bg-surface-elevated px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 sm:px-6 sm:pb-4">
           <button
             onClick={handleClose}
-            className="rounded-full bg-surface px-4 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary"
+            className="min-h-11 rounded-[var(--radius-inner)] bg-surface px-4 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={!hasChanges}
-            className="rounded-full bg-mc-cyan px-4 py-1.5 text-xs font-medium text-white disabled:opacity-40"
+            className="min-h-11 rounded-[var(--radius-inner)] bg-mc-cyan px-4 py-1.5 text-xs font-medium text-white disabled:opacity-40"
           >
             Save Changes
           </button>

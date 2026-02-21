@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { X } from "lucide-react";
@@ -21,9 +20,9 @@ export function StandupModal({ open, onClose }: { open: boolean; onClose: () => 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm sm:items-center sm:justify-center" onClick={onClose}>
       <div
-        className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-[var(--radius-outer)] border border-mc-border bg-surface-elevated p-6"
+        className="w-full max-h-[88dvh] overflow-y-auto rounded-t-[var(--radius-outer)] border border-mc-border bg-surface-elevated p-4 pb-[calc(env(safe-area-inset-bottom)+16px)] sm:max-h-[80vh] sm:max-w-lg sm:rounded-[var(--radius-outer)] sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-5">
@@ -31,7 +30,11 @@ export function StandupModal({ open, onClose }: { open: boolean; onClose: () => 
             <h2 className="text-lg font-bold text-text-primary">Daily Standup</h2>
             <p className="text-xs text-text-secondary mt-0.5">{standup?.date ?? today}</p>
           </div>
-          <button onClick={onClose} className="text-text-secondary hover:text-text-primary">
+          <button
+            onClick={onClose}
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary"
+            aria-label="Close standup"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>

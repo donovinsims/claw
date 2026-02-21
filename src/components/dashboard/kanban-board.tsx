@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
 import {
   DndContext,
   DragOverlay,
@@ -18,10 +19,10 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { useDroppable } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ArrowUp, ChevronRight } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 
 export type Task = {
-  _id: string;
+  _id: Id<"tasks">;
   title: string;
   description?: string;
   priority: string;
@@ -65,7 +66,17 @@ function formatTimeAgo(timestamp: number): string {
   return `${days} day${days > 1 ? "s" : ""} ago`;
 }
 
-function TaskCard({ task, isDragging }: { task: Task; isDragging?: boolean }) {
+type MoveTaskHandler = (taskId: Task["_id"], status: string) => void;
+
+function TaskCard({
+  task,
+  isDragging,
+  onMoveTask,
+}: {
+  task: Task;
+  isDragging?: boolean;
+  onMoveTask?: MoveTaskHandler;
+}) {
   return (
     <div className={`rounded-[var(--radius-inner)] border border-mc-border bg-surface p-3 transition-shadow ${isDragging ? "opacity-90 shadow-lg scale-[1.02]" : ""}`}>
       <div className="flex items-start gap-2">
@@ -100,13 +111,33 @@ function TaskCard({ task, isDragging }: { task: Task; isDragging?: boolean }) {
             </>
           )}
         </div>
-        <span className="text-[10px] text-text-secondary">{formatTimeAgo(task.updatedAt)}</span>
+        <div className="flex items-center gap-2">
+          {onMoveTask && (
+            <label className="block md:hidden">
+              <span className="sr-only">Move task to status</span>
+              <select
+                value={task.status}
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={(event) => event.stopPropagation()}
+                onChange={(event) => onMoveTask(task._id, event.target.value)}
+                className="min-h-11 rounded-[var(--radius-inner)] border border-mc-border bg-surface-elevated px-2 text-[10px] font-medium text-text-secondary"
+              >
+                {columnDefs.map((column) => (
+                  <option key={column.id} value={column.id}>
+                    {column.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <span className="text-[10px] text-text-secondary">{formatTimeAgo(task.updatedAt)}</span>
+        </div>
       </div>
     </div>
   );
 }
 
-function SortableTaskCard({ task }: { task: Task }) {
+function SortableTaskCard({ task, onMoveTask }: { task: Task; onMoveTask: MoveTaskHandler }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task._id,
   });
@@ -119,12 +150,24 @@ function SortableTaskCard({ task }: { task: Task }) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <TaskCard task={task} />
+      <TaskCard task={task} onMoveTask={onMoveTask} />
     </div>
   );
 }
 
-function Column({ id, name, tasks }: { id: string; name: string; tasks: Task[] }) {
+function Column({
+  id,
+  name,
+  tasks,
+  isLoading,
+  onMoveTask,
+}: {
+  id: string;
+  name: string;
+  tasks: Task[];
+  isLoading: boolean;
+  onMoveTask: MoveTaskHandler;
+}) {
   const { setNodeRef } = useDroppable({ id });
 
   return (
@@ -138,8 +181,15 @@ function Column({ id, name, tasks }: { id: string; name: string; tasks: Task[] }
       </div>
       <div ref={setNodeRef} className="flex-1 space-y-2 overflow-y-auto px-2 pb-2" style={{ minHeight: 80 }}>
         <SortableContext items={tasks.map((t) => t._id)} strategy={verticalListSortingStrategy}>
+          {isLoading &&
+            Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={`${id}-skeleton-${index}`}
+                className="h-[116px] animate-pulse rounded-[var(--radius-inner)] border border-mc-border bg-background"
+              />
+            ))}
           {tasks.map((task) => (
-            <SortableTaskCard key={task._id} task={task} />
+            <SortableTaskCard key={task._id} task={task} onMoveTask={onMoveTask} />
           ))}
         </SortableContext>
       </div>
@@ -148,7 +198,9 @@ function Column({ id, name, tasks }: { id: string; name: string; tasks: Task[] }
 }
 
 export function KanbanBoard() {
-  const tasksByStatus = useQuery(api.queries.getTasksByStatus) ?? {};
+  const tasksByStatusQuery = useQuery(api.queries.getTasksByStatus);
+  const tasksByStatus = useMemo(() => tasksByStatusQuery ?? {}, [tasksByStatusQuery]);
+  const isLoading = tasksByStatusQuery === undefined;
   const moveTaskMutation = useMutation(api.mutations.moveTask);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [localOverrides, setLocalOverrides] = useState<Record<string, string>>({});
@@ -211,8 +263,13 @@ export function KanbanBoard() {
     setLocalOverrides({});
 
     if (newStatus) {
-      await moveTaskMutation({ taskId: active.id as any, status: newStatus });
+      await moveTaskMutation({ taskId: active.id as Id<"tasks">, status: newStatus });
     }
+  }
+
+  async function moveTask(taskId: Task["_id"], status: string) {
+    setLocalOverrides((prev) => ({ ...prev, [taskId]: status }));
+    await moveTaskMutation({ taskId, status });
   }
 
   return (
@@ -230,7 +287,14 @@ export function KanbanBoard() {
       >
         <div className="flex flex-1 gap-3 overflow-x-auto p-4">
           {columnDefs.map((col) => (
-            <Column key={col.id} id={col.id} name={col.name} tasks={tasksByColumn[col.id]} />
+            <Column
+              key={col.id}
+              id={col.id}
+              name={col.name}
+              tasks={tasksByColumn[col.id]}
+              isLoading={isLoading}
+              onMoveTask={moveTask}
+            />
           ))}
         </div>
         <DragOverlay>
