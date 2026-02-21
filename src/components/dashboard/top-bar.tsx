@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { Diamond, Sun, Moon, Calendar, Search } from "lucide-react";
 
 type TopBarProps = {
@@ -13,6 +15,7 @@ type TopBarProps = {
 
 export function TopBar({ isDark, toggleTheme, onStandupOpen, onCalendarOpen, onSearchOpen }: TopBarProps) {
   const [time, setTime] = useState<Date | null>(null);
+  const stats = useQuery(api.queries.getDashboardStats);
 
   useEffect(() => {
     setTime(new Date());
@@ -37,11 +40,11 @@ export function TopBar({ isDark, toggleTheme, onStandupOpen, onCalendarOpen, onS
       {/* Center */}
       <div className="flex items-center gap-10">
         <div className="text-center">
-          <div className="text-3xl font-bold tracking-tight text-text-primary">11</div>
+          <div className="text-3xl font-bold tracking-tight text-text-primary">{stats?.agentsActive ?? 0}</div>
           <div className="font-mono text-[10px] tracking-widest text-text-secondary">AGENTS ACTIVE</div>
         </div>
         <div className="text-center">
-          <div className="text-3xl font-bold tracking-tight text-text-primary">35</div>
+          <div className="text-3xl font-bold tracking-tight text-text-primary">{stats?.tasksInQueue ?? 0}</div>
           <div className="font-mono text-[10px] tracking-widest text-text-secondary">TASKS IN QUEUE</div>
         </div>
       </div>

@@ -1,12 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { Pencil, X } from "lucide-react";
 
+const DEFAULT_MISSION = "Build an autonomous organization of AI agents that produces value 24/7";
+
 export function MissionBanner() {
-  const [text, setText] = useState("Build an autonomous organization of AI agents that produces value 24/7");
+  const missionSetting = useQuery(api.queries.getSetting, { key: "mission_statement" });
+  const updateSetting = useMutation(api.mutations.updateSetting);
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(text);
+  const [draft, setDraft] = useState("");
+
+  const text = missionSetting?.value ?? DEFAULT_MISSION;
 
   return (
     <>
@@ -46,7 +53,10 @@ export function MissionBanner() {
                 Cancel
               </button>
               <button
-                onClick={() => { setText(draft); setEditing(false); }}
+                onClick={async () => {
+                  await updateSetting({ key: "mission_statement", value: draft });
+                  setEditing(false);
+                }}
                 className="rounded-full bg-mc-cyan px-4 py-1.5 text-xs font-medium text-white"
               >
                 Save

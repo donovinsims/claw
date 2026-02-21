@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 type ActivityEvent = {
-  id: string;
-  type: "task_created" | "comment" | "decision" | "document" | "status_change";
-  agent: string;
+  _id: string;
+  type: string;
+  agentId: string;
   message: string;
-  timeAgo: string;
+  createdAt: number;
 };
 
 const typeColors: Record<string, string> = {
@@ -26,32 +28,6 @@ const typeLabels: Record<string, string> = {
   status_change: "Status",
 };
 
-const agentCounts: Record<string, number> = {
-  Jarvis: 17, Quill: 22, Loki: 26, Vision: 22, Fury: 30,
-  Shuri: 20, Wanda: 1, Pepper: 12, Friday: 9, Wong: 5,
-};
-
-const mockEvents: ActivityEvent[] = [
-  { id: "e1", type: "comment", agent: "Quill", message: "commented on 'Write Customer Case Studies (Brent + Will)'", timeAgo: "2 hours ago" },
-  { id: "e2", type: "comment", agent: "Quill", message: "commented on 'Twitter Content Blitz — 10 Tweets This Week'", timeAgo: "2 hours ago" },
-  { id: "e3", type: "comment", agent: "Quill", message: "commented on 'Twitter Content Blitz — 10 Tweets This Week'", timeAgo: "2 hours ago" },
-  { id: "e4", type: "document", agent: "Loki", message: "created document 'Shopify Blog Draft v1'", timeAgo: "3 hours ago" },
-  { id: "e5", type: "status_change", agent: "Vision", message: "moved 'SEO Strategy' to Review", timeAgo: "4 hours ago" },
-  { id: "e6", type: "task_created", agent: "Fury", message: "added research to 'Competitor Pricing Audit'", timeAgo: "5 hours ago" },
-  { id: "e7", type: "task_created", agent: "Jarvis", message: "created task 'Customer Research — Tweet Material'", timeAgo: "6 hours ago" },
-  { id: "e8", type: "status_change", agent: "Friday", message: "deployed Mission Control UI update", timeAgo: "6 hours ago" },
-  { id: "e9", type: "status_change", agent: "Pepper", message: "updated 'Trial Onboarding Sequence' status to In Progress", timeAgo: "7 hours ago" },
-  { id: "e10", type: "decision", agent: "Jarvis", message: "decided to prioritize SEO content over social this sprint", timeAgo: "8 hours ago" },
-  { id: "e11", type: "comment", agent: "Vision", message: "commented on 'SiteGPT vs Zendesk AI Comparison'", timeAgo: "8 hours ago" },
-  { id: "e12", type: "document", agent: "Wong", message: "created document 'API Integration Guide v2'", timeAgo: "9 hours ago" },
-  { id: "e13", type: "task_created", agent: "Shuri", message: "created task 'Product Analytics Deep Dive'", timeAgo: "10 hours ago" },
-  { id: "e14", type: "comment", agent: "Loki", message: "commented on 'Shopify Blog Landing Page'", timeAgo: "10 hours ago" },
-  { id: "e15", type: "status_change", agent: "Wanda", message: "updated 'Brand Assets Refresh' to Done", timeAgo: "11 hours ago" },
-  { id: "e16", type: "document", agent: "Fury", message: "created document 'Customer Interview Notes — Brent'", timeAgo: "12 hours ago" },
-  { id: "e17", type: "task_created", agent: "Pepper", message: "created task 'Onboarding Email Sequence A/B Test'", timeAgo: "13 hours ago" },
-  { id: "e18", type: "decision", agent: "Jarvis", message: "approved Shopify blog landing page copy", timeAgo: "14 hours ago" },
-];
-
 const filterTabs = ["All", "Tasks", "Comments", "Decisions", "Docs", "Status"];
 const tabToType: Record<string, string | null> = {
   All: null,
@@ -62,21 +38,45 @@ const tabToType: Record<string, string | null> = {
   Status: "status_change",
 };
 
+function formatTimeAgo(timestamp: number): string {
+  const diff = Date.now() - timestamp;
+  const hours = Math.floor(diff / 3600000);
+  if (hours < 1) return "just now";
+  if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days > 1 ? "s" : ""} ago`;
+}
+
 export function LiveFeedPanel() {
   const [activeTab, setActiveTab] = useState("All");
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
 
-  const filteredEvents = useMemo(() => {
-    let events = mockEvents;
-    const typeFilter = tabToType[activeTab];
-    if (typeFilter) {
-      events = events.filter((e) => e.type === typeFilter);
+  const typeFilter = tabToType[activeTab];
+  const events = useQuery(api.queries.getActivityFeed, {
+    limit: 50,
+    type: typeFilter ?? undefined,
+    agentId: selectedAgent ?? undefined,
+  }) ?? [];
+
+  const allEvents = useQuery(api.queries.getActivityFeed, { limit: 200 }) ?? [];
+
+  // Compute agent counts from all events
+  const agentCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const e of allEvents) {
+      counts[e.agentId] = (counts[e.agentId] ?? 0) + 1;
     }
-    if (selectedAgent) {
-      events = events.filter((e) => e.agent === selectedAgent);
+    return counts;
+  }, [allEvents]);
+
+  // Compute type counts from all events
+  const typeCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const e of allEvents) {
+      counts[e.type] = (counts[e.type] ?? 0) + 1;
     }
-    return events;
-  }, [activeTab, selectedAgent]);
+    return counts;
+  }, [allEvents]);
 
   return (
     <aside className="flex w-[320px] shrink-0 flex-col border-l border-mc-border bg-background">
@@ -89,7 +89,7 @@ export function LiveFeedPanel() {
       <div className="flex flex-wrap gap-1.5 px-4 pb-2">
         {filterTabs.map((tab) => {
           const typeKey = tabToType[tab];
-          const count = typeKey ? mockEvents.filter((e) => e.type === typeKey).length : mockEvents.length;
+          const count = typeKey ? (typeCounts[typeKey] ?? 0) : allEvents.length;
           return (
             <button
               key={tab}
@@ -136,24 +136,24 @@ export function LiveFeedPanel() {
       {/* Activity feed */}
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         <div className="space-y-1">
-          {filteredEvents.map((event) => (
+          {events.map((event) => (
             <div
-              key={event.id}
+              key={event._id}
               className="flex gap-3 rounded-[var(--radius-inner)] p-2.5 transition-colors hover:bg-surface"
               style={{ animation: "fadeIn 0.3s ease-out" }}
             >
-              <div className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${typeColors[event.type]}`} />
+              <div className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${typeColors[event.type] ?? "bg-text-secondary"}`} />
               <div className="min-w-0 flex-1">
                 <p className="text-xs leading-relaxed text-text-primary">
-                  <span className="font-semibold">{event.agent}</span>{" "}
+                  <span className="font-semibold">{event.agentId}</span>{" "}
                   <span className="text-text-secondary">{event.message}</span>
                 </p>
-                <span className="text-[10px] text-text-secondary/60">{event.agent} {event.timeAgo}</span>
+                <span className="text-[10px] text-text-secondary/60">{event.agentId} {formatTimeAgo(event.createdAt)}</span>
               </div>
               <ChevronRight className="mt-1 h-3 w-3 shrink-0 text-text-secondary/30" />
             </div>
           ))}
-          {filteredEvents.length === 0 && (
+          {events.length === 0 && (
             <div className="py-8 text-center text-xs text-text-secondary/50">No activity matching filters</div>
           )}
         </div>

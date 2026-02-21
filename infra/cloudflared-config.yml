@@ -1,0 +1,22 @@
+# Cloudflare Tunnel Configuration
+# Run: cloudflared tunnel --config ~/openclaw-workspace/claw/infra/cloudflared-config.yml run
+tunnel: YOUR_TUNNEL_ID
+credentials-file: ~/.cloudflared/YOUR_TUNNEL_ID.json
+
+ingress:
+  # OpenClaw Gateway (WebSocket + HTTP)
+  - hostname: openclaw.yourdomain.com
+    service: http://localhost:18789
+    originRequest:
+      noTLSVerify: true
+      connectTimeout: 30s
+
+  # Mission Control Dashboard
+  - hostname: mission.yourdomain.com
+    service: http://localhost:3000
+
+  # NOTE: Convex HTTP actions are cloud-hosted at your-app.convex.site
+  # No tunnel entry needed for Convex.
+
+  # Catch-all
+  - service: http_status:404

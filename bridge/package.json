@@ -1,0 +1,12 @@
+{
+  "name": "openclaw-convex-bridge",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "tsx index.ts",
+    "dev": "tsx watch index.ts"
+  },
+  "dependencies": {
+    "tsx": "^4.0.0"
+  }
+}

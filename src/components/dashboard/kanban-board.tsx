@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import {
   DndContext,
   DragOverlay,
@@ -19,14 +21,16 @@ import { CSS } from "@dnd-kit/utilities";
 import { ArrowUp, ChevronRight } from "lucide-react";
 
 export type Task = {
-  id: string;
+  _id: string;
   title: string;
-  description: string;
-  priority: "high" | "normal";
+  description?: string;
+  priority: string;
   tags: string[];
-  assignee: string;
-  timeAgo?: string;
+  assignee?: string;
   status: string;
+  createdAt: number;
+  updatedAt: number;
+  completedAt?: number;
 };
 
 const tagColors: Record<string, string> = {
@@ -44,26 +48,6 @@ const tagColors: Record<string, string> = {
   development: "bg-[#AF52DE]/15 text-[#AF52DE]",
 };
 
-const agentIcons: Record<string, string> = {
-  Jarvis: "J", Shuri: "S", Fury: "F", Vision: "V",
-  Loki: "L", Quill: "Q", Wanda: "W", Pepper: "P",
-  Friday: "Fr", Wong: "Wo",
-};
-
-const initialTasks: Task[] = [
-  { id: "t1", title: "Explore SiteGPT Dashboard & Document All Features", description: "Thoroughly explore the entire SiteGPT dashboard...", priority: "high", tags: ["research", "documentation"], assignee: "Fury", status: "inbox" },
-  { id: "t2", title: "Design Expansion Revenue Mechanics", description: "Implement Rob Walling's principles for expansion revenue...", priority: "high", tags: ["research", "content"], assignee: "Loki", status: "inbox" },
-  { id: "t3", title: "Product Demo Video Script", description: "Create full script for SiteGPT product demo video with...", priority: "normal", tags: ["video", "content"], assignee: "Loki", timeAgo: "1 day ago", status: "assigned" },
-  { id: "t4", title: "Tweet Content — Real Stories Only", description: "Create authentic tweets based on real SiteGPT customer data", priority: "normal", tags: ["social", "content"], assignee: "Quill", timeAgo: "8 hours ago", status: "assigned" },
-  { id: "t5", title: "Customer Research — Tweet Material", description: "Pull real customer data and stories from Slack for tweet...", priority: "normal", tags: ["research", "social"], assignee: "Fury", timeAgo: "8 hours ago", status: "assigned" },
-  { id: "t6", title: "SiteGPT vs Zendesk AI Comparison", description: "Create a detailed brief for Zendesk AI comparison page", priority: "high", tags: ["competitor", "seo"], assignee: "Vision", timeAgo: "1 day ago", status: "in_progress" },
-  { id: "t7", title: "Mission Control UI", description: "Build real-time agent command center with React + Convex", priority: "high", tags: ["development"], assignee: "Friday", status: "in_progress" },
-  { id: "t8", title: "SiteGPT vs Intercom Fin Comparison", description: "Create detailed brief for Intercom Fin comparison page", priority: "normal", tags: ["competitor", "seo"], assignee: "Vision", timeAgo: "2 days ago", status: "in_progress" },
-  { id: "t9", title: "Shopify Blog Landing Page", description: "Write copy for SiteGPT integration landing page — how SiteGPT help...", priority: "normal", tags: ["copy", "landing-page"], assignee: "Loki", timeAgo: "1 day ago", status: "review" },
-  { id: "t10", title: "Best AI Chatbot for Shopify", description: "Write full SEO blog post: Best AI Chatbot for Shopify in 2026...", priority: "normal", tags: ["blog", "seo"], assignee: "Loki", timeAgo: "1 day ago", status: "review" },
-  { id: "t11", title: "Email Marketing Strategy", description: "Email Marketing Strategy — Userlist-Inspired Lifecycle Campaigns", priority: "normal", tags: ["email"], assignee: "Pepper", status: "review" },
-];
-
 const columnDefs = [
   { id: "inbox", name: "INBOX" },
   { id: "assigned", name: "ASSIGNED" },
@@ -71,6 +55,15 @@ const columnDefs = [
   { id: "review", name: "REVIEW" },
   { id: "done", name: "DONE" },
 ];
+
+function formatTimeAgo(timestamp: number): string {
+  const diff = Date.now() - timestamp;
+  const hours = Math.floor(diff / 3600000);
+  if (hours < 1) return "just now";
+  if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days > 1 ? "s" : ""} ago`;
+}
 
 function TaskCard({ task, isDragging }: { task: Task; isDragging?: boolean }) {
   return (
@@ -81,7 +74,9 @@ function TaskCard({ task, isDragging }: { task: Task; isDragging?: boolean }) {
         )}
         <div className="min-w-0 flex-1">
           <h4 className="text-sm font-semibold leading-snug text-text-primary">{task.title}</h4>
-          <p className="mt-1 text-xs leading-relaxed text-text-secondary line-clamp-2">{task.description}</p>
+          {task.description && (
+            <p className="mt-1 text-xs leading-relaxed text-text-secondary line-clamp-2">{task.description}</p>
+          )}
         </div>
       </div>
       <div className="mt-2.5 flex flex-wrap gap-1">
@@ -96,14 +91,16 @@ function TaskCard({ task, isDragging }: { task: Task; isDragging?: boolean }) {
       </div>
       <div className="mt-2.5 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-surface-elevated text-[9px] font-bold text-text-secondary">
-            {agentIcons[task.assignee] || task.assignee[0]}
-          </div>
-          <span className="text-[11px] font-medium text-text-secondary">{task.assignee}</span>
+          {task.assignee && (
+            <>
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-surface-elevated text-[9px] font-bold text-text-secondary">
+                {task.assignee[0]?.toUpperCase()}
+              </div>
+              <span className="text-[11px] font-medium text-text-secondary">{task.assignee}</span>
+            </>
+          )}
         </div>
-        {task.timeAgo && (
-          <span className="text-[10px] text-text-secondary">{task.timeAgo}</span>
-        )}
+        <span className="text-[10px] text-text-secondary">{formatTimeAgo(task.updatedAt)}</span>
       </div>
     </div>
   );
@@ -111,7 +108,7 @@ function TaskCard({ task, isDragging }: { task: Task; isDragging?: boolean }) {
 
 function SortableTaskCard({ task }: { task: Task }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: task.id,
+    id: task._id,
   });
 
   const style = {
@@ -140,9 +137,9 @@ function Column({ id, name, tasks }: { id: string; name: string; tasks: Task[] }
         </span>
       </div>
       <div ref={setNodeRef} className="flex-1 space-y-2 overflow-y-auto px-2 pb-2" style={{ minHeight: 80 }}>
-        <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext items={tasks.map((t) => t._id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
-            <SortableTaskCard key={task.id} task={task} />
+            <SortableTaskCard key={task._id} task={task} />
           ))}
         </SortableContext>
       </div>
@@ -151,22 +148,38 @@ function Column({ id, name, tasks }: { id: string; name: string; tasks: Task[] }
 }
 
 export function KanbanBoard() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const tasksByStatus = useQuery(api.queries.getTasksByStatus) ?? {};
+  const moveTaskMutation = useMutation(api.mutations.moveTask);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [localOverrides, setLocalOverrides] = useState<Record<string, string>>({});
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
+  // Merge Convex data with local drag overrides
+  const allTasks = useMemo(() => {
+    const tasks: Task[] = [];
+    for (const status of Object.keys(tasksByStatus)) {
+      for (const task of tasksByStatus[status] ?? []) {
+        tasks.push({
+          ...task,
+          status: localOverrides[task._id] ?? task.status,
+        });
+      }
+    }
+    return tasks;
+  }, [tasksByStatus, localOverrides]);
+
   const tasksByColumn = useMemo(() => {
     const map: Record<string, Task[]> = {};
     for (const col of columnDefs) {
-      map[col.id] = tasks.filter((t) => t.status === col.id);
+      map[col.id] = allTasks.filter((t) => t.status === col.id);
     }
     return map;
-  }, [tasks]);
+  }, [allTasks]);
 
-  const activeTask = activeId ? tasks.find((t) => t.id === activeId) : null;
+  const activeTask = activeId ? allTasks.find((t) => t._id === activeId) : null;
 
   function handleDragStart(event: DragStartEvent) {
     setActiveId(event.active.id as string);
@@ -176,29 +189,30 @@ export function KanbanBoard() {
     const { active, over } = event;
     if (!over) return;
 
-    const activeTaskObj = tasks.find((t) => t.id === active.id);
+    const activeTaskObj = allTasks.find((t) => t._id === active.id);
     if (!activeTaskObj) return;
 
-    // Check if over a column directly
     const overColumnId = columnDefs.find((c) => c.id === over.id)?.id;
     if (overColumnId && activeTaskObj.status !== overColumnId) {
-      setTasks((prev) =>
-        prev.map((t) => (t.id === active.id ? { ...t, status: overColumnId } : t))
-      );
+      setLocalOverrides((prev) => ({ ...prev, [active.id as string]: overColumnId }));
       return;
     }
 
-    // Check if over another task
-    const overTask = tasks.find((t) => t.id === over.id);
+    const overTask = allTasks.find((t) => t._id === over.id);
     if (overTask && activeTaskObj.status !== overTask.status) {
-      setTasks((prev) =>
-        prev.map((t) => (t.id === active.id ? { ...t, status: overTask.status } : t))
-      );
+      setLocalOverrides((prev) => ({ ...prev, [active.id as string]: overTask.status }));
     }
   }
 
-  function handleDragEnd(event: DragEndEvent) {
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active } = event;
+    const newStatus = localOverrides[active.id as string];
     setActiveId(null);
+    setLocalOverrides({});
+
+    if (newStatus) {
+      await moveTaskMutation({ taskId: active.id as any, status: newStatus });
+    }
   }
 
   return (
