@@ -33,20 +33,19 @@ function formatTimeAgo(timestamp: number): string {
 }
 
 type LiveFeedPanelProps = {
+  layout?: "desktop" | "mobile";
   isOpen?: boolean;
   onToggle?: () => void;
-  layout?: "desktop" | "mobile";
 };
 
 export function LiveFeedPanel({
+  layout = "desktop",
   isOpen = true,
   onToggle,
-  layout = "desktop",
 }: LiveFeedPanelProps) {
   const [activeTab, setActiveTab] = useState("All");
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
   const isMobileLayout = layout === "mobile";
-  const resolvedOpen = isMobileLayout ? true : isOpen;
 
   const typeFilter = tabToType[activeTab];
   const eventsQuery = useQuery(api.queries.getActivityFeed, {
@@ -58,7 +57,6 @@ export function LiveFeedPanel({
 
   const allEventsQuery = useQuery(api.queries.getActivityFeed, { limit: 200 });
   const allEvents = useMemo(() => allEventsQuery ?? [], [allEventsQuery]);
-  const isLoading = eventsQuery === undefined || allEventsQuery === undefined;
 
   const agentCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -76,126 +74,137 @@ export function LiveFeedPanel({
     return counts;
   }, [allEvents]);
 
+  if (!isOpen) {
+    return (
+      <aside className={`${isMobileLayout ? "w-full" : "w-12 border-l border-mc-border"} flex shrink-0 flex-col bg-background`}>
+        <div className="flex items-center gap-2 px-3 py-4">
+          {onToggle && (
+            <button
+              onClick={onToggle}
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary"
+              aria-label="Expand live feed"
+            >
+              <PanelRightOpen className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </aside>
+    );
+  }
+
   return (
     <aside
-      className={`flex shrink-0 flex-col bg-background transition-all duration-300 ${
-        isMobileLayout
-          ? "w-full"
-          : resolvedOpen
-            ? "w-[320px] border-l border-mc-border"
-            : "w-12 border-l border-mc-border"
+      className={`flex shrink-0 flex-col bg-background ${
+        isMobileLayout ? "w-full" : "w-[320px] border-l border-mc-border"
       }`}
     >
-      {/* Header with toggle */}
-      <div className="flex items-center gap-2 px-3 py-4">
-        {onToggle && !isMobileLayout && (
+      <div className="flex items-center gap-2 px-5 py-4">
+        {onToggle && (
           <button
             onClick={onToggle}
             className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary"
-            aria-label={resolvedOpen ? "Collapse live feed" : "Expand live feed"}
+            aria-label="Collapse live feed"
           >
-            {resolvedOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+            <PanelRightClose className="h-4 w-4" />
           </button>
         )}
-        {resolvedOpen && (
-          <>
-            <div className="h-2 w-2 rounded-full bg-mc-green animate-pulse-dot" />
-            <span className="text-sm font-semibold tracking-wide text-text-primary">LIVE FEED</span>
-          </>
-        )}
+        <div className="h-2 w-2 rounded-full bg-mc-green animate-pulse-dot" />
+        <span className="text-sm font-semibold tracking-wide text-text-primary">LIVE FEED</span>
       </div>
 
-      {resolvedOpen && (
-        <>
-          {/* Type filter tabs */}
-          <div className="flex flex-wrap gap-1.5 px-4 pb-2">
-            {filterTabs.map((tab) => {
-              const typeKey = tabToType[tab];
-              const count = typeKey ? (typeCounts[typeKey] ?? 0) : allEvents.length;
-              return (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`min-h-11 rounded-[var(--radius-inner)] px-2.5 py-1 font-mono text-[10px] font-medium transition-colors ${
-                    activeTab === tab
-                      ? "bg-mc-cyan text-white"
-                      : "bg-surface-elevated text-text-secondary hover:text-text-primary"
-                  }`}
-                >
-                  {tab} <span className="ml-0.5 opacity-70">{count}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Agent filter pills */}
-          <div className="flex flex-wrap gap-1.5 px-4 pb-3">
+      <div className="flex flex-wrap gap-1.5 px-4 pb-2">
+        {filterTabs.map((tab) => {
+          const typeKey = tabToType[tab];
+          const count = typeKey ? (typeCounts[typeKey] ?? 0) : allEvents.length;
+          return (
             <button
-              onClick={() => setSelectedAgent(null)}
-              className={`min-h-11 rounded-[var(--radius-inner)] px-2.5 py-1 text-[10px] font-medium transition-colors ${
-                !selectedAgent
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`rounded-[var(--radius-pill)] px-2.5 py-1 font-mono text-[10px] font-medium transition-colors ${
+                activeTab === tab
                   ? "bg-mc-cyan text-white"
-                  : "bg-surface text-text-secondary hover:text-text-primary"
-              }`}
+                  : "bg-surface-elevated text-text-secondary hover:text-text-primary"
+              } ${isMobileLayout ? "min-h-11" : ""}`}
             >
-              All Agents
+              {tab} <span className="ml-0.5 opacity-70">{count}</span>
             </button>
-            {Object.entries(agentCounts).map(([name, count]) => (
-              <button
-                key={name}
-                onClick={() => setSelectedAgent(selectedAgent === name ? null : name)}
-                className={`min-h-11 rounded-[var(--radius-inner)] px-2 py-1 text-[10px] font-medium transition-colors ${
-                  selectedAgent === name
-                    ? "bg-mc-cyan text-white"
-                    : "bg-surface text-text-secondary hover:text-text-primary"
-                }`}
-              >
-                {name} <span className="ml-0.5 opacity-60">{count}</span>
-              </button>
-            ))}
-          </div>
+          );
+        })}
+      </div>
 
-          {/* Activity feed */}
-          <div className="flex-1 overflow-y-auto px-4 pb-4 [scrollbar-gutter:stable]">
-            <div className="space-y-1">
-              {isLoading &&
-                Array.from({ length: 6 }).map((_, index) => (
-                  <div
-                    key={`feed-skeleton-${index}`}
-                    className="h-[56px] animate-pulse rounded-[var(--radius-inner)] bg-surface"
-                  />
-                ))}
-              {events.map((event) => (
-                <div
-                  key={event._id}
-                  className="flex gap-3 rounded-[var(--radius-inner)] p-2.5 transition-colors hover:bg-surface"
-                  style={{ animation: "fadeIn 0.3s ease-out" }}
-                >
-                  <div className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${typeColors[event.type] ?? "bg-text-secondary"}`} />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs leading-relaxed text-text-primary">
-                      <span className="font-semibold">{event.agentId}</span>{" "}
-                      <span className="text-text-secondary">{event.message}</span>
-                    </p>
-                    <span className="text-[10px] text-text-secondary/60">{event.agentId} {formatTimeAgo(event.createdAt)}</span>
-                  </div>
-                  <ChevronRight className="mt-1 h-3 w-3 shrink-0 text-text-secondary/30" />
-                </div>
-              ))}
-              {!isLoading && events.length === 0 && (
-                <div className="py-8 text-center text-xs text-text-secondary/50">No activity matching filters</div>
-              )}
+      <div className="flex flex-wrap gap-1.5 px-4 pb-3">
+        <button
+          onClick={() => setSelectedAgent(null)}
+          className={`rounded-[var(--radius-pill)] px-2.5 py-1 text-[10px] font-medium transition-colors ${
+            !selectedAgent
+              ? "bg-mc-cyan text-white"
+              : "bg-surface text-text-secondary hover:text-text-primary"
+          } ${isMobileLayout ? "min-h-11" : ""}`}
+        >
+          All Agents
+        </button>
+        {Object.entries(agentCounts).map(([name, count]) => (
+          <button
+            key={name}
+            onClick={() => setSelectedAgent(selectedAgent === name ? null : name)}
+            className={`rounded-[var(--radius-pill)] px-2 py-1 text-[10px] font-medium transition-colors ${
+              selectedAgent === name
+                ? "bg-mc-cyan text-white"
+                : "bg-surface text-text-secondary hover:text-text-primary"
+            } ${isMobileLayout ? "min-h-11" : ""}`}
+          >
+            {name} <span className="ml-0.5 opacity-60">{count}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 pb-4">
+        <div className="space-y-1">
+          {events.map((event) => (
+            <div
+              key={event._id}
+              className="flex gap-3 rounded-[var(--radius-inner)] p-2.5 transition-colors hover:bg-surface"
+              style={{ animation: "fadeIn 0.3s ease-out" }}
+            >
+              <div
+                className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                  typeColors[event.type] ?? "bg-text-secondary"
+                }`}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs leading-relaxed text-text-primary">
+                  <span className="font-semibold">{event.agentId}</span>{" "}
+                  <span className="text-text-secondary">{event.message}</span>
+                </p>
+                <span className="text-[10px] text-text-secondary/60">
+                  {event.agentId} {formatTimeAgo(event.createdAt)}
+                </span>
+              </div>
+              <ChevronRight className="mt-1 h-3 w-3 shrink-0 text-text-secondary/30" />
             </div>
-          </div>
-        </>
-      )}
+          ))}
+          {events.length === 0 && (
+            <div className="py-8 text-center text-xs text-text-secondary/50">
+              No activity matching filters
+            </div>
+          )}
+        </div>
+      </div>
     </aside>
   );
 }
 
 function ChevronRight({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <polyline points="9 18 15 12 9 6" />
     </svg>
   );

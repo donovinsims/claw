@@ -20,9 +20,9 @@ export function StandupModal({ open, onClose }: { open: boolean; onClose: () => 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm sm:items-center sm:justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm md:items-center md:justify-center" onClick={onClose}>
       <div
-        className="w-full max-h-[88dvh] overflow-y-auto rounded-t-[var(--radius-outer)] border border-mc-border bg-surface-elevated p-4 pb-[calc(env(safe-area-inset-bottom)+16px)] sm:max-h-[80vh] sm:max-w-lg sm:rounded-[var(--radius-outer)] sm:p-6"
+        className="w-full max-h-[88dvh] overflow-y-auto rounded-t-[var(--radius-outer)] border border-mc-border bg-surface-elevated p-4 pb-[calc(env(safe-area-inset-bottom)+16px)] md:max-h-[80vh] md:max-w-lg md:rounded-[var(--radius-outer)] md:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-5">
@@ -32,7 +32,7 @@ export function StandupModal({ open, onClose }: { open: boolean; onClose: () => 
           </div>
           <button
             onClick={onClose}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary md:min-h-0 md:min-w-0 md:rounded-none md:hover:bg-transparent"
             aria-label="Close standup"
           >
             <X className="h-5 w-5" />

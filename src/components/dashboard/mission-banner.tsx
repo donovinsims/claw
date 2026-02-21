@@ -21,23 +21,23 @@ export function MissionBanner() {
         <p className="text-center font-serif text-sm italic text-text-primary/80">&ldquo;{text}&rdquo;</p>
         <button
           onClick={() => { setDraft(text); setEditing(true); }}
-          className="absolute right-3 top-1/2 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary/40 transition-colors hover:bg-surface/60 hover:text-text-primary"
+          className="absolute right-3 top-1/2 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary/40 transition-colors hover:bg-surface/60 hover:text-text-primary md:right-4 md:min-h-0 md:min-w-0 md:rounded-full md:p-1.5 md:hover:bg-transparent"
         >
           <Pencil className="h-3 w-3" />
         </button>
       </div>
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm sm:items-center sm:justify-center" onClick={() => setEditing(false)}>
+        <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm md:items-center md:justify-center" onClick={() => setEditing(false)}>
           <div
-            className="w-full rounded-t-[var(--radius-outer)] border border-mc-border bg-surface-elevated p-4 pb-[calc(env(safe-area-inset-bottom)+16px)] sm:max-w-md sm:rounded-[var(--radius-outer)] sm:p-6"
+            className="w-full rounded-t-[var(--radius-outer)] border border-mc-border bg-surface-elevated p-4 pb-[calc(env(safe-area-inset-bottom)+16px)] md:max-w-md md:rounded-[var(--radius-outer)] md:p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-text-primary">Edit Mission Statement</h3>
               <button
                 onClick={() => setEditing(false)}
-                className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary md:min-h-0 md:min-w-0 md:rounded-none md:hover:bg-transparent"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -51,7 +51,7 @@ export function MissionBanner() {
             <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={() => setEditing(false)}
-                className="min-h-11 rounded-[var(--radius-inner)] bg-surface px-4 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary"
+                className="min-h-11 rounded-[var(--radius-inner)] bg-surface px-4 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary md:min-h-0 md:rounded-full"
               >
                 Cancel
               </button>
@@ -60,7 +60,7 @@ export function MissionBanner() {
                   await updateSetting({ key: "mission_statement", value: draft });
                   setEditing(false);
                 }}
-                className="min-h-11 rounded-[var(--radius-inner)] bg-mc-cyan px-4 py-1.5 text-xs font-medium text-white"
+                className="min-h-11 rounded-[var(--radius-inner)] bg-mc-cyan px-4 py-1.5 text-xs font-medium text-white md:min-h-0 md:rounded-full"
               >
                 Save
               </button>

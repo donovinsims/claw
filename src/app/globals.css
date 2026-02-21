@@ -23,10 +23,17 @@
   --color-pink: #FF2D55;
   --color-amber: #FFCC00;
 
-  --radius: 10px;
-  --radius-outer: 24px;
-  --radius-inner: 16px;
-  --radius-pill: 18px;
+  --radius-outer: 28px;
+  --radius-inner: 20px;
+  --radius-pill: 999px;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --radius-outer: 24px;
+    --radius-inner: 16px;
+    --radius-pill: 18px;
+  }
 }
 
 .dark {

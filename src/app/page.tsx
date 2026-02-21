@@ -19,27 +19,14 @@ export default function Home() {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
-  const [agentPanelOpen, setAgentPanelOpen] = useState(true);
-  const [agentPanelWidth, setAgentPanelWidth] = useState(260);
-  const [liveFeedOpen, setLiveFeedOpen] = useState(true);
+  const [mobileFeedOpen, setMobileFeedOpen] = useState(true);
   const [mobileTab, setMobileTab] = useState<MobileTab>("queue");
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    const storedLiveFeed = window.localStorage.getItem("mc.liveFeedOpen");
-    if (storedLiveFeed !== null) {
-      setLiveFeedOpen(storedLiveFeed === "true");
-    }
-    const storedAgentPanelOpen = window.localStorage.getItem("mc.agentPanelOpen");
-    if (storedAgentPanelOpen !== null) {
-      setAgentPanelOpen(storedAgentPanelOpen === "true");
-    }
-    const storedAgentPanelWidth = window.localStorage.getItem("mc.agentPanelWidth");
-    if (storedAgentPanelWidth !== null) {
-      const width = Number(storedAgentPanelWidth);
-      if (!Number.isNaN(width)) {
-        setAgentPanelWidth(Math.min(420, Math.max(220, width)));
-      }
+    const storedMobileFeedOpen = window.localStorage.getItem("mc.mobileFeedOpen");
+    if (storedMobileFeedOpen !== null) {
+      setMobileFeedOpen(storedMobileFeedOpen === "true");
     }
     const storedMobileTab = window.localStorage.getItem("mc.mobileTab") as MobileTab | null;
     if (storedMobileTab === "queue" || storedMobileTab === "agents" || storedMobileTab === "feed") {
@@ -48,16 +35,8 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem("mc.liveFeedOpen", String(liveFeedOpen));
-  }, [liveFeedOpen]);
-
-  useEffect(() => {
-    window.localStorage.setItem("mc.agentPanelOpen", String(agentPanelOpen));
-  }, [agentPanelOpen]);
-
-  useEffect(() => {
-    window.localStorage.setItem("mc.agentPanelWidth", String(agentPanelWidth));
-  }, [agentPanelWidth]);
+    window.localStorage.setItem("mc.mobileFeedOpen", String(mobileFeedOpen));
+  }, [mobileFeedOpen]);
 
   useEffect(() => {
     window.localStorage.setItem("mc.mobileTab", mobileTab);
@@ -86,7 +65,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-background">
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
       <MissionBanner />
       <TopBar
         isDark={isDark}
@@ -95,25 +74,21 @@ export default function Home() {
         onCalendarOpen={() => setCalendarOpen(true)}
         onSearchOpen={() => setSearchOpen(true)}
       />
-      <div className="flex flex-1 overflow-hidden pb-[calc(env(safe-area-inset-bottom)+72px)] md:pb-0">
-        {/* Desktop sidebars */}
-        {!isMobile && (
-          <AgentPanel
-            onAgentClick={(id) => setSelectedAgentId(id)}
-            isOpen={agentPanelOpen}
-            onToggle={() => setAgentPanelOpen((prev) => !prev)}
-            width={agentPanelWidth}
-            onWidthChange={setAgentPanelWidth}
-          />
-        )}
-        {(!isMobile || mobileTab === "queue") && <KanbanBoard />}
-        {!isMobile && (
-          <LiveFeedPanel isOpen={liveFeedOpen} onToggle={() => setLiveFeedOpen(!liveFeedOpen)} />
-        )}
+      <div className={`flex flex-1 overflow-hidden ${isMobile ? "pb-[calc(env(safe-area-inset-bottom)+72px)]" : ""}`}>
+        {!isMobile && <AgentPanel />}
+        {!isMobile && <KanbanBoard />}
+        {!isMobile && <LiveFeedPanel />}
+        {isMobile && mobileTab === "queue" && <KanbanBoard />}
         {isMobile && mobileTab === "agents" && (
           <AgentPanel layout="mobile" onAgentClick={(id) => setSelectedAgentId(id)} />
         )}
-        {isMobile && mobileTab === "feed" && <LiveFeedPanel layout="mobile" />}
+        {isMobile && mobileTab === "feed" && (
+          <LiveFeedPanel
+            layout="mobile"
+            isOpen={mobileFeedOpen}
+            onToggle={() => setMobileFeedOpen((prev) => !prev)}
+          />
+        )}
       </div>
 
       {isMobile && (

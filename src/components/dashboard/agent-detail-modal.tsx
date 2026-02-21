@@ -99,12 +99,12 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
   const ActiveIcon = iconOptions.find((i) => i.name === draftIcon)?.icon ?? Bot;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm sm:items-center sm:justify-center" onClick={handleClose}>
+    <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm md:items-center md:justify-center" onClick={handleClose}>
       <div
-        className="flex h-[100dvh] w-full flex-col border border-mc-border bg-surface-elevated sm:mx-4 sm:h-auto sm:max-h-[85vh] sm:max-w-2xl sm:rounded-[var(--radius-outer)]"
+        className="flex h-[100dvh] w-full flex-col border border-mc-border bg-surface-elevated md:mx-4 md:h-auto md:max-h-[85vh] md:max-w-2xl md:rounded-[var(--radius-outer)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex-1 overflow-y-auto px-4 pb-24 pt-[calc(env(safe-area-inset-top)+12px)] sm:px-6 sm:pb-6 sm:pt-6">
+        <div className="flex-1 overflow-y-auto px-4 pb-24 pt-[calc(env(safe-area-inset-top)+12px)] md:px-6 md:pb-6 md:pt-6">
           <div className="mb-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-inner)] bg-surface text-text-secondary">
@@ -207,7 +207,7 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
           </div>
         </div>
 
-        <div className="sticky bottom-0 z-10 flex justify-end gap-2 border-t border-mc-border bg-surface-elevated px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 sm:px-6 sm:pb-4">
+        <div className="sticky bottom-0 z-10 flex justify-end gap-2 border-t border-mc-border bg-surface-elevated px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 md:px-6 md:pb-4">
           <button
             onClick={handleClose}
             className="min-h-11 rounded-[var(--radius-inner)] bg-surface px-4 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary"

@@ -71,9 +71,9 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm sm:items-start sm:justify-center sm:pt-[12vh]" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm md:items-start md:justify-center md:pt-[15vh]" onClick={onClose}>
       <div
-        className="flex h-[88dvh] w-full flex-col rounded-t-[var(--radius-outer)] border border-mc-border bg-surface-elevated overflow-hidden sm:h-auto sm:max-h-[70vh] sm:max-w-xl sm:rounded-[var(--radius-outer)]"
+        className="flex h-[88dvh] w-full flex-col overflow-hidden rounded-t-[var(--radius-outer)] border border-mc-border bg-surface-elevated md:h-auto md:max-w-xl md:rounded-[var(--radius-outer)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 border-b border-mc-border px-4 py-3">
@@ -85,10 +85,10 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
             placeholder="Search tasks, documents, agents..."
             className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-secondary/50 focus:outline-none"
           />
-          <kbd className="hidden rounded-md border border-mc-border bg-surface px-1.5 py-0.5 font-mono text-[10px] text-text-secondary sm:inline">ESC</kbd>
+          <kbd className="hidden rounded-md border border-mc-border bg-surface px-1.5 py-0.5 font-mono text-[10px] text-text-secondary md:inline">ESC</kbd>
           <button
             onClick={onClose}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary transition-colors hover:bg-surface hover:text-text-primary"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary transition-colors hover:bg-surface hover:text-text-primary md:hidden"
             aria-label="Close search"
           >
             <X className="h-4 w-4" />
@@ -96,7 +96,7 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
         </div>
 
         {query.trim() && (
-          <div className="flex-1 overflow-y-auto p-2 pb-[calc(env(safe-area-inset-bottom)+8px)]">
+          <div className="max-h-[58dvh] overflow-y-auto p-2 pb-[calc(env(safe-area-inset-bottom)+8px)] md:max-h-[50vh] md:pb-2">
             {Object.entries(grouped).length === 0 && (
               <div className="py-8 text-center text-sm text-text-secondary">No results for &ldquo;{query}&rdquo;</div>
             )}
@@ -130,7 +130,7 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
         )}
 
         {!query.trim() && (
-          <div className="flex-1 p-6 text-center text-sm text-text-secondary/50">
+          <div className="p-6 text-center text-sm text-text-secondary/50">
             Start typing to search across all data...
           </div>
         )}

@@ -91,7 +91,7 @@ export function CalendarView({ open, onClose }: { open: boolean; onClose: () => 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-background" onClick={onClose}>
       <div
-        className="flex items-center justify-between border-b border-mc-border bg-surface px-4 pb-3 pt-[calc(env(safe-area-inset-top)+10px)] sm:px-6 sm:pt-3"
+        className="flex items-center justify-between border-b border-mc-border bg-surface px-4 pb-3 pt-[calc(env(safe-area-inset-top)+10px)] md:px-6 md:pt-3"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-4">
@@ -99,19 +99,19 @@ export function CalendarView({ open, onClose }: { open: boolean; onClose: () => 
           <div className="flex items-center gap-1">
             <button
               onClick={() => setWeekOffset(weekOffset - 1)}
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface-elevated hover:text-text-primary"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface-elevated hover:text-text-primary md:min-h-0 md:min-w-0 md:rounded-full md:p-1 md:hover:bg-transparent"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               onClick={() => setWeekOffset(0)}
-              className="min-h-11 rounded-[var(--radius-inner)] bg-surface-elevated px-3 py-1 text-xs font-medium text-text-secondary"
+              className="min-h-11 rounded-[var(--radius-inner)] bg-surface-elevated px-3 py-1 text-xs font-medium text-text-secondary md:min-h-0 md:rounded-full"
             >
               Today
             </button>
             <button
               onClick={() => setWeekOffset(weekOffset + 1)}
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface-elevated hover:text-text-primary"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface-elevated hover:text-text-primary md:min-h-0 md:min-w-0 md:rounded-full md:p-1 md:hover:bg-transparent"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -122,7 +122,7 @@ export function CalendarView({ open, onClose }: { open: boolean; onClose: () => 
         </div>
         <button
           onClick={onClose}
-          className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface-elevated hover:text-text-primary"
+          className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface-elevated hover:text-text-primary md:min-h-0 md:min-w-0 md:rounded-none md:hover:bg-transparent"
           aria-label="Close calendar"
         >
           <X className="h-5 w-5" />
