@@ -34,7 +34,7 @@ export function AgentPanel({ onAgentClick, layout = "desktop" }: AgentPanelProps
       <div className="flex items-center gap-2 px-5 py-4">
         <div className="h-2 w-2 rounded-full bg-mc-cyan" />
         <span className="text-sm font-semibold tracking-wide text-text-primary">AGENTS</span>
-        <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-surface-elevated px-1.5 font-mono text-[10px] text-text-secondary">
+        <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-[calc(var(--radius-inner)-8px)] bg-surface-elevated px-1.5 font-mono text-[10px] text-text-secondary">
           {agents.length}
         </span>
       </div>
@@ -62,7 +62,7 @@ export function AgentPanel({ onAgentClick, layout = "desktop" }: AgentPanelProps
                   <div className="flex items-center gap-2">
                     <span className="truncate text-sm font-semibold text-text-primary">{agent.name}</span>
                     {agent.level && (
-                      <span className={`shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[9px] font-medium ${levelColors[agent.level] ?? ""}`}>
+                      <span className={`shrink-0 rounded-[calc(var(--radius-inner)-8px)] px-1.5 py-0.5 font-mono text-[9px] font-medium ${levelColors[agent.level] ?? ""}`}>
                         {agent.level}
                       </span>
                     )}

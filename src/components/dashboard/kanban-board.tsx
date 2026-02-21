@@ -94,7 +94,7 @@ function TaskCard({
         {task.tags.map((tag) => (
           <span
             key={tag}
-            className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${tagColors[tag] || "bg-text-secondary/10 text-text-secondary"}`}
+            className={`rounded-[calc(var(--radius-inner)-8px)] px-2 py-0.5 text-[10px] font-medium ${tagColors[tag] || "bg-text-secondary/10 text-text-secondary"}`}
           >
             {tag}
           </span>
@@ -175,7 +175,7 @@ function Column({
       <div className="flex items-center gap-2 px-4 py-3">
         <div className="h-1.5 w-1.5 rounded-full bg-text-secondary/40" />
         <span className="font-mono text-xs font-medium tracking-wider text-text-secondary">{name}</span>
-        <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-surface-elevated px-1.5 font-mono text-[10px] text-text-secondary">
+        <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-[calc(var(--radius-inner)-8px)] bg-surface-elevated px-1.5 font-mono text-[10px] text-text-secondary">
           {tasks.length}
         </span>
       </div>

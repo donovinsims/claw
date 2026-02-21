@@ -23,9 +23,10 @@
   --color-pink: #FF2D55;
   --color-amber: #FFCC00;
 
-  --radius-outer: 28px;
-  --radius-inner: 20px;
-  --radius-pill: 999px;
+  --radius: 10px;
+  --radius-outer: 24px;
+  --radius-inner: 16px;
+  --radius-pill: 18px;
 }
 
 .dark {
