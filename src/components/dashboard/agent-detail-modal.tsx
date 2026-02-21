@@ -90,8 +90,9 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
   const keepFieldVisible = (
     event: FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
+    const target = event.currentTarget;
     requestAnimationFrame(() => {
-      event.currentTarget.scrollIntoView({ block: "center", behavior: "smooth" });
+      target.scrollIntoView({ block: "center", behavior: "smooth" });
     });
   };
 
