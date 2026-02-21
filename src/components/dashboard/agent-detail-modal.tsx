@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type FocusEvent } from "react";
+import { useState, useEffect, useCallback, type FocusEvent } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { X, Bot, Shield, Sparkles, Eye, Pen, Share2, Palette, Mail, Code, BookOpen } from "lucide-react";
@@ -25,6 +25,12 @@ const modelOptions = [
 ];
 
 const levelOptions = ["LEAD", "SPC", "INT"];
+const statusOptions = ["idle", "working", "error", "offline"];
+
+function formatLastActive(lastActive?: number): string {
+  if (!lastActive) return "Unknown";
+  return new Date(lastActive).toLocaleString();
+}
 
 type AgentDetailModalProps = {
   open: boolean;
@@ -42,43 +48,87 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
   const [draftName, setDraftName] = useState("");
   const [draftRole, setDraftRole] = useState("");
   const [draftLevel, setDraftLevel] = useState("");
+  const [draftStatus, setDraftStatus] = useState("idle");
   const [draftIcon, setDraftIcon] = useState("Bot");
   const [draftModel, setDraftModel] = useState("google-antigravity/gemini-3-flash");
   const [draftPrompt, setDraftPrompt] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showUnsavedPrompt, setShowUnsavedPrompt] = useState(false);
 
   useEffect(() => {
     if (agent) {
       setDraftName(agent.name);
       setDraftRole(agent.role ?? "");
       setDraftLevel(agent.level ?? "");
+      setDraftStatus(agent.status ?? "idle");
       setDraftIcon(agent.icon ?? "Bot");
       setDraftModel(agent.model ?? "google-antigravity/gemini-3-flash");
       setDraftPrompt(agent.prompt ?? "");
       setHasChanges(false);
+      setShowUnsavedPrompt(false);
     }
   }, [agent]);
 
-  if (!open || !agentId) return null;
-
-  const handleClose = () => {
-    if (hasChanges && !window.confirm("You have unsaved changes. Discard?")) return;
+  const requestClose = useCallback(() => {
+    if (isSaving) return;
+    if (hasChanges) {
+      setShowUnsavedPrompt(true);
+      return;
+    }
     onClose();
+  }, [hasChanges, isSaving, onClose]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (showUnsavedPrompt) {
+        setShowUnsavedPrompt(false);
+        return;
+      }
+      requestClose();
+    };
+
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [open, requestClose, showUnsavedPrompt]);
+
+  const persistChanges = async () => {
+    if (!agentId) return;
+    setIsSaving(true);
+    try {
+      await upsertAgent({
+        agentId,
+        name: draftName,
+        role: draftRole || undefined,
+        level: draftLevel || undefined,
+        status: draftStatus,
+        icon: draftIcon || undefined,
+        prompt: draftPrompt || undefined,
+        model: draftModel || undefined,
+      });
+      setHasChanges(false);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSave = async () => {
-    if (!agentId) return;
-    await upsertAgent({
-      agentId,
-      name: draftName,
-      role: draftRole || undefined,
-      level: draftLevel || undefined,
-      status: agent?.status ?? "idle",
-      icon: draftIcon || undefined,
-      prompt: draftPrompt || undefined,
-      model: draftModel || undefined,
-    });
-    setHasChanges(false);
+    await persistChanges();
+    onClose();
+  };
+
+  const handleDiscardAndClose = () => {
+    setShowUnsavedPrompt(false);
+    onClose();
+  };
+
+  const handleSaveAndClose = async () => {
+    await persistChanges();
+    setShowUnsavedPrompt(false);
     onClose();
   };
 
@@ -98,10 +148,12 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
 
   const ActiveIcon = iconOptions.find((i) => i.name === draftIcon)?.icon ?? Bot;
 
+  if (!open || !agentId) return null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm md:items-center md:justify-center" onClick={handleClose}>
+    <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm md:items-center md:justify-center" onClick={requestClose}>
       <div
-        className="flex h-[100dvh] w-full flex-col border border-mc-border bg-surface-elevated md:mx-4 md:h-auto md:max-h-[85vh] md:max-w-2xl md:rounded-[var(--radius-outer)]"
+        className="relative flex h-[100dvh] w-full flex-col border border-mc-border bg-surface-elevated md:mx-4 md:h-auto md:max-h-[85vh] md:max-w-2xl md:rounded-[var(--radius-outer)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex-1 overflow-y-auto px-4 pb-24 pt-[calc(env(safe-area-inset-top)+12px)] md:px-6 md:pb-6 md:pt-6">
@@ -116,12 +168,33 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
               </div>
             </div>
             <button
-              onClick={handleClose}
+              onClick={requestClose}
               className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary"
               aria-label="Close agent details"
             >
               <X className="h-5 w-5" />
             </button>
+          </div>
+
+          <div className="mb-4 rounded-[var(--radius-inner)] border border-mc-border bg-surface p-3">
+            <p className="mb-2 text-[10px] font-bold tracking-wider text-text-secondary">AGENT CONTENTS</p>
+            <div className="grid gap-2 text-xs text-text-secondary md:grid-cols-2">
+              <p>
+                <span className="text-text-primary">Current Task:</span>{" "}
+                {agent?.currentTask ?? "No active task"}
+              </p>
+              <p>
+                <span className="text-text-primary">Tasks Completed:</span>{" "}
+                {agent?.tasksCompleted ?? 0}
+              </p>
+              <p>
+                <span className="text-text-primary">Last Active:</span>{" "}
+                {formatLastActive(agent?.lastActive)}
+              </p>
+              <p>
+                <span className="text-text-primary">Runtime ID:</span> {agentId}
+              </p>
+            </div>
           </div>
 
           <div className="mb-4">
@@ -134,7 +207,7 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
             />
           </div>
 
-          <div className="mb-4 flex gap-3">
+          <div className="mb-4 flex flex-wrap gap-3">
             <div className="flex-1">
               <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">ROLE</label>
               <input
@@ -156,6 +229,19 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
                 <option value="">None</option>
                 {levelOptions.map((l) => (
                   <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+            </div>
+            <div className="w-[132px]">
+              <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">STATUS</label>
+              <select
+                value={draftStatus}
+                onChange={(e) => set(setDraftStatus)(e.target.value)}
+                onFocus={keepFieldVisible}
+                className="min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-2.5 text-sm text-text-primary focus:outline-none focus:border-mc-cyan"
+              >
+                {statusOptions.map((status) => (
+                  <option key={status} value={status}>{status.toUpperCase()}</option>
                 ))}
               </select>
             </div>
@@ -209,19 +295,51 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
 
         <div className="sticky bottom-0 z-10 flex justify-end gap-2 border-t border-mc-border bg-surface-elevated px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 md:px-6 md:pb-4">
           <button
-            onClick={handleClose}
+            onClick={requestClose}
             className="min-h-11 rounded-[var(--radius-inner)] bg-surface px-4 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            disabled={!hasChanges}
+            disabled={!hasChanges || isSaving}
             className="min-h-11 rounded-[var(--radius-inner)] bg-mc-cyan px-4 py-1.5 text-xs font-medium text-white disabled:opacity-40"
           >
-            Save Changes
+            {isSaving ? "Saving..." : "Save Changes"}
           </button>
         </div>
+
+        {showUnsavedPrompt && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/55 p-4">
+            <div className="w-full max-w-md rounded-[var(--radius-outer)] border border-mc-border bg-surface-elevated p-4">
+              <h3 className="text-sm font-semibold text-text-primary">Save your changes?</h3>
+              <p className="mt-1 text-xs text-text-secondary">
+                You changed this agent. Save before closing the popup?
+              </p>
+              <div className="mt-4 flex flex-wrap justify-end gap-2">
+                <button
+                  onClick={() => setShowUnsavedPrompt(false)}
+                  className="min-h-11 rounded-[var(--radius-inner)] bg-surface px-3 text-xs font-medium text-text-secondary hover:text-text-primary"
+                >
+                  Keep Editing
+                </button>
+                <button
+                  onClick={handleDiscardAndClose}
+                  className="min-h-11 rounded-[var(--radius-inner)] bg-surface px-3 text-xs font-medium text-text-secondary hover:text-text-primary"
+                >
+                  Discard
+                </button>
+                <button
+                  onClick={handleSaveAndClose}
+                  disabled={isSaving}
+                  className="min-h-11 rounded-[var(--radius-inner)] bg-mc-cyan px-3 text-xs font-medium text-white disabled:opacity-40"
+                >
+                  {isSaving ? "Saving..." : "Save & Close"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

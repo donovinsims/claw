@@ -76,7 +76,11 @@ export function LiveFeedPanel({
 
   if (!isOpen) {
     return (
-      <aside className={`${isMobileLayout ? "w-full" : "w-12 border-l border-mc-border"} flex shrink-0 flex-col bg-background`}>
+      <aside
+        className={`flex h-full w-full shrink-0 flex-col bg-background ${
+          isMobileLayout ? "" : "border-l border-mc-border"
+        }`}
+      >
         <div className="flex items-center gap-2 px-3 py-4">
           {onToggle && (
             <button
@@ -94,8 +98,8 @@ export function LiveFeedPanel({
 
   return (
     <aside
-      className={`flex shrink-0 flex-col bg-background ${
-        isMobileLayout ? "w-full" : "w-[320px] border-l border-mc-border"
+      className={`flex h-full w-full shrink-0 flex-col bg-background ${
+        isMobileLayout ? "" : "border-l border-mc-border"
       }`}
     >
       <div className="flex items-center gap-2 px-5 py-4">

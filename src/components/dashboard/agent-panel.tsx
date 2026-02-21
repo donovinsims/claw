@@ -13,6 +13,8 @@ import {
   Mail,
   Code,
   BookOpen,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 
 const iconMap: Record<string, typeof Shield> = {
@@ -37,19 +39,53 @@ const levelColors: Record<string, string> = {
 type AgentPanelProps = {
   onAgentClick?: (agentId: string) => void;
   layout?: "desktop" | "mobile";
+  isOpen?: boolean;
+  onToggle?: () => void;
 };
 
-export function AgentPanel({ onAgentClick, layout = "desktop" }: AgentPanelProps) {
+export function AgentPanel({
+  onAgentClick,
+  layout = "desktop",
+  isOpen = true,
+  onToggle,
+}: AgentPanelProps) {
   const agents = useQuery(api.queries.getAgents) ?? [];
   const isMobileLayout = layout === "mobile";
 
+  if (!isMobileLayout && !isOpen) {
+    return (
+      <aside className="flex h-full w-full shrink-0 flex-col border-r border-mc-border bg-background">
+        <div className="flex items-center justify-center px-2 py-4">
+          {onToggle && (
+            <button
+              onClick={onToggle}
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary"
+              aria-label="Expand agent sidebar"
+            >
+              <PanelLeftOpen className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </aside>
+    );
+  }
+
   return (
     <aside
-      className={`flex shrink-0 flex-col bg-background ${
-        isMobileLayout ? "w-full" : "w-[240px] border-r border-mc-border"
+      className={`flex h-full shrink-0 flex-col bg-background ${
+        isMobileLayout ? "w-full" : "w-full border-r border-mc-border"
       }`}
     >
       <div className="flex items-center gap-2 px-5 py-4">
+        {onToggle && !isMobileLayout && (
+          <button
+            onClick={onToggle}
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary"
+            aria-label="Collapse agent sidebar"
+          >
+            <PanelLeftClose className="h-4 w-4" />
+          </button>
+        )}
         <div className="h-2 w-2 rounded-full bg-mc-cyan" />
         <span className="text-sm font-semibold tracking-wide text-text-primary">AGENTS</span>
         <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-[var(--radius-pill)] bg-surface-elevated px-1.5 font-mono text-[10px] text-text-secondary">
