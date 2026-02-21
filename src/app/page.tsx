@@ -9,12 +9,19 @@ import { MissionBanner } from "@/components/dashboard/mission-banner";
 import { StandupModal } from "@/components/dashboard/standup-modal";
 import { CalendarView } from "@/components/dashboard/calendar-view";
 import { GlobalSearch } from "@/components/dashboard/global-search";
+import { AgentDetailModal } from "@/components/dashboard/agent-detail-modal";
+import { MobileTabBar, type MobileTab } from "@/components/dashboard/mobile-tab-bar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Home() {
   const [isDark, setIsDark] = useState(true);
   const [standupOpen, setStandupOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const [liveFeedOpen, setLiveFeedOpen] = useState(true);
+  const [mobileTab, setMobileTab] = useState<MobileTab>("queue");
+  const isMobile = useIsMobile();
 
   const toggleTheme = () => {
     setIsDark(!isDark);
@@ -31,6 +38,7 @@ export default function Home() {
         setSearchOpen(false);
         setCalendarOpen(false);
         setStandupOpen(false);
+        setSelectedAgentId(null);
       }
     };
     window.addEventListener("keydown", handler);
@@ -38,7 +46,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-background">
       <MissionBanner />
       <TopBar
         isDark={isDark}
@@ -47,14 +55,36 @@ export default function Home() {
         onCalendarOpen={() => setCalendarOpen(true)}
         onSearchOpen={() => setSearchOpen(true)}
       />
-      <div className="flex flex-1 overflow-hidden">
-        <AgentPanel />
-        <KanbanBoard />
-        <LiveFeedPanel />
+      <div className="flex flex-1 overflow-hidden pb-[calc(env(safe-area-inset-bottom)+64px)] md:pb-0">
+        {/* Desktop sidebars */}
+        {!isMobile && <AgentPanel onAgentClick={(id) => setSelectedAgentId(id)} />}
+        {(!isMobile || mobileTab === "queue") && <KanbanBoard />}
+        {!isMobile && (
+          <LiveFeedPanel isOpen={liveFeedOpen} onToggle={() => setLiveFeedOpen(!liveFeedOpen)} />
+        )}
+        {isMobile && mobileTab === "agents" && (
+          <AgentPanel layout="mobile" onAgentClick={(id) => setSelectedAgentId(id)} />
+        )}
+        {isMobile && mobileTab === "feed" && <LiveFeedPanel layout="mobile" />}
       </div>
+
+      {isMobile && (
+        <MobileTabBar
+          activeTab={mobileTab}
+          onTabChange={setMobileTab}
+          onSearchOpen={() => setSearchOpen(true)}
+          onCalendarOpen={() => setCalendarOpen(true)}
+        />
+      )}
+
       <StandupModal open={standupOpen} onClose={() => setStandupOpen(false)} />
       <CalendarView open={calendarOpen} onClose={() => setCalendarOpen(false)} />
       <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <AgentDetailModal
+        open={selectedAgentId !== null}
+        agentId={selectedAgentId}
+        onClose={() => setSelectedAgentId(null)}
+      />
     </div>
   );
 }

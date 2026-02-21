@@ -28,17 +28,17 @@ export function TopBar({ isDark, toggleTheme, onStandupOpen, onCalendarOpen, onS
   const dateStr = time ? time.toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase() : "--- --";
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-mc-border bg-surface px-6">
+    <header className="flex h-16 shrink-0 items-center justify-between border-b border-mc-border bg-surface px-4 md:px-6">
       {/* Left */}
-      <div className="flex items-center gap-3">
-        <Diamond className="h-5 w-5 text-text-primary" />
-        <span className="font-mono text-sm font-bold tracking-widest text-text-primary">
+      <div className="flex items-center gap-2 md:gap-3">
+        <Diamond className="h-5 w-5 text-text-primary hidden sm:block" />
+        <span className="font-mono text-xs sm:text-sm font-bold tracking-widest text-text-primary">
           MISSION CONTROL
         </span>
       </div>
 
       {/* Center */}
-      <div className="flex items-center gap-10">
+      <div className="hidden sm:flex items-center gap-10">
         <div className="text-center">
           <div className="text-3xl font-bold tracking-tight text-text-primary">{stats?.agentsActive ?? 0}</div>
           <div className="font-mono text-[10px] tracking-widest text-text-secondary">AGENTS ACTIVE</div>
@@ -50,7 +50,7 @@ export function TopBar({ isDark, toggleTheme, onStandupOpen, onCalendarOpen, onS
       </div>
 
       {/* Right */}
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2 md:gap-2.5">
         <button
           onClick={onSearchOpen}
           className="flex h-8 items-center gap-2 rounded-full bg-surface-elevated px-3 text-xs text-text-secondary transition-colors hover:text-text-primary"
@@ -61,13 +61,13 @@ export function TopBar({ isDark, toggleTheme, onStandupOpen, onCalendarOpen, onS
         </button>
         <button
           onClick={onCalendarOpen}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-elevated text-text-secondary transition-colors hover:text-text-primary"
+          className="hidden sm:flex h-8 w-8 items-center justify-center rounded-full bg-surface-elevated text-text-secondary transition-colors hover:text-text-primary"
         >
           <Calendar className="h-3.5 w-3.5" />
         </button>
         <button
           onClick={onStandupOpen}
-          className="rounded-full bg-surface-elevated px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:text-text-primary"
+          className="hidden sm:block rounded-full bg-surface-elevated px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:text-text-primary"
         >
           Standup
         </button>
@@ -77,11 +77,11 @@ export function TopBar({ isDark, toggleTheme, onStandupOpen, onCalendarOpen, onS
         >
           {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
         </button>
-        <div className="text-right ml-1">
+        <div className="hidden md:block text-right ml-1">
           <div className="font-mono text-lg font-bold tabular-nums text-text-primary">{timeStr}</div>
           <div className="font-mono text-[10px] tracking-widest text-text-secondary">{dayStr}, {dateStr}</div>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full bg-[#34C759]/15 px-3 py-1">
+        <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-[#34C759]/15 px-3 py-1">
           <div className="h-2 w-2 rounded-full bg-mc-green animate-pulse-dot" />
           <span className="font-mono text-xs font-medium text-mc-green">ONLINE</span>
         </div>

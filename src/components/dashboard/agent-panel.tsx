@@ -14,11 +14,21 @@ const levelColors: Record<string, string> = {
   SPC: "bg-text-secondary/15 text-text-secondary",
 };
 
-export function AgentPanel() {
+type AgentPanelProps = {
+  onAgentClick?: (agentId: string) => void;
+  layout?: "desktop" | "mobile";
+};
+
+export function AgentPanel({ onAgentClick, layout = "desktop" }: AgentPanelProps) {
   const agents = useQuery(api.queries.getAgents) ?? [];
+  const isMobileLayout = layout === "mobile";
 
   return (
-    <aside className="flex w-[240px] shrink-0 flex-col border-r border-mc-border bg-background">
+    <aside
+      className={`flex shrink-0 flex-col bg-background ${
+        isMobileLayout ? "w-full" : "w-[240px] border-r border-mc-border"
+      }`}
+    >
       <div className="flex items-center gap-2 px-5 py-4">
         <div className="h-2 w-2 rounded-full bg-mc-cyan" />
         <span className="text-sm font-semibold tracking-wide text-text-primary">AGENTS</span>
@@ -33,7 +43,8 @@ export function AgentPanel() {
             return (
               <div
                 key={agent.agentId}
-                className="flex items-center gap-3 rounded-[var(--radius-inner)] border border-mc-border bg-surface px-3 py-2.5 transition-colors hover:bg-surface-elevated"
+                onClick={() => onAgentClick?.(agent.agentId)}
+                className="flex items-center gap-3 rounded-[var(--radius-inner)] border border-mc-border bg-surface px-3 py-2.5 transition-colors hover:bg-surface-elevated cursor-pointer"
               >
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-elevated text-text-secondary">
                   <IconComponent className="h-4 w-4" />

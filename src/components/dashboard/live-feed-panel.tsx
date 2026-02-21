@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { PanelRightClose, PanelRightOpen } from "lucide-react";
 
 type ActivityEvent = {
   _id: string;
@@ -18,14 +19,6 @@ const typeColors: Record<string, string> = {
   decision: "bg-mc-purple",
   document: "bg-mc-green",
   status_change: "bg-mc-blue",
-};
-
-const typeLabels: Record<string, string> = {
-  task_created: "Tasks",
-  comment: "Comments",
-  decision: "Decisions",
-  document: "Docs",
-  status_change: "Status",
 };
 
 const filterTabs = ["All", "Tasks", "Comments", "Decisions", "Docs", "Status"];
@@ -47,9 +40,21 @@ function formatTimeAgo(timestamp: number): string {
   return `${days} day${days > 1 ? "s" : ""} ago`;
 }
 
-export function LiveFeedPanel() {
+type LiveFeedPanelProps = {
+  isOpen?: boolean;
+  onToggle?: () => void;
+  layout?: "desktop" | "mobile";
+};
+
+export function LiveFeedPanel({
+  isOpen = true,
+  onToggle,
+  layout = "desktop",
+}: LiveFeedPanelProps) {
   const [activeTab, setActiveTab] = useState("All");
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const isMobileLayout = layout === "mobile";
+  const resolvedOpen = isMobileLayout ? true : isOpen;
 
   const typeFilter = tabToType[activeTab];
   const events = useQuery(api.queries.getActivityFeed, {
@@ -60,7 +65,6 @@ export function LiveFeedPanel() {
 
   const allEvents = useQuery(api.queries.getActivityFeed, { limit: 200 }) ?? [];
 
-  // Compute agent counts from all events
   const agentCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const e of allEvents) {
@@ -69,7 +73,6 @@ export function LiveFeedPanel() {
     return counts;
   }, [allEvents]);
 
-  // Compute type counts from all events
   const typeCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const e of allEvents) {
@@ -79,85 +82,107 @@ export function LiveFeedPanel() {
   }, [allEvents]);
 
   return (
-    <aside className="flex w-[320px] shrink-0 flex-col border-l border-mc-border bg-background">
-      <div className="flex items-center gap-2 px-5 py-4">
-        <div className="h-2 w-2 rounded-full bg-mc-green animate-pulse-dot" />
-        <span className="text-sm font-semibold tracking-wide text-text-primary">LIVE FEED</span>
+    <aside
+      className={`flex shrink-0 flex-col bg-background transition-all duration-300 ${
+        isMobileLayout
+          ? "w-full"
+          : resolvedOpen
+            ? "w-[320px] border-l border-mc-border"
+            : "w-12 border-l border-mc-border"
+      }`}
+    >
+      {/* Header with toggle */}
+      <div className="flex items-center gap-2 px-3 py-4">
+        {onToggle && !isMobileLayout && (
+          <button onClick={onToggle} className="shrink-0 text-text-secondary hover:text-text-primary">
+            {resolvedOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+          </button>
+        )}
+        {resolvedOpen && (
+          <>
+            <div className="h-2 w-2 rounded-full bg-mc-green animate-pulse-dot" />
+            <span className="text-sm font-semibold tracking-wide text-text-primary">LIVE FEED</span>
+          </>
+        )}
       </div>
 
-      {/* Type filter tabs */}
-      <div className="flex flex-wrap gap-1.5 px-4 pb-2">
-        {filterTabs.map((tab) => {
-          const typeKey = tabToType[tab];
-          const count = typeKey ? (typeCounts[typeKey] ?? 0) : allEvents.length;
-          return (
+      {resolvedOpen && (
+        <>
+          {/* Type filter tabs */}
+          <div className="flex flex-wrap gap-1.5 px-4 pb-2">
+            {filterTabs.map((tab) => {
+              const typeKey = tabToType[tab];
+              const count = typeKey ? (typeCounts[typeKey] ?? 0) : allEvents.length;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-medium transition-colors ${
+                    activeTab === tab
+                      ? "bg-mc-cyan text-white"
+                      : "bg-surface-elevated text-text-secondary hover:text-text-primary"
+                  }`}
+                >
+                  {tab} <span className="ml-0.5 opacity-70">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Agent filter pills */}
+          <div className="flex flex-wrap gap-1.5 px-4 pb-3">
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-medium transition-colors ${
-                activeTab === tab
+              onClick={() => setSelectedAgent(null)}
+              className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${
+                !selectedAgent
                   ? "bg-mc-cyan text-white"
-                  : "bg-surface-elevated text-text-secondary hover:text-text-primary"
+                  : "bg-surface text-text-secondary hover:text-text-primary"
               }`}
             >
-              {tab} <span className="ml-0.5 opacity-70">{count}</span>
+              All Agents
             </button>
-          );
-        })}
-      </div>
+            {Object.entries(agentCounts).map(([name, count]) => (
+              <button
+                key={name}
+                onClick={() => setSelectedAgent(selectedAgent === name ? null : name)}
+                className={`rounded-full px-2 py-1 text-[10px] font-medium transition-colors ${
+                  selectedAgent === name
+                    ? "bg-mc-cyan text-white"
+                    : "bg-surface text-text-secondary hover:text-text-primary"
+                }`}
+              >
+                {name} <span className="ml-0.5 opacity-60">{count}</span>
+              </button>
+            ))}
+          </div>
 
-      {/* Agent filter pills */}
-      <div className="flex flex-wrap gap-1.5 px-4 pb-3">
-        <button
-          onClick={() => setSelectedAgent(null)}
-          className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${
-            !selectedAgent
-              ? "bg-mc-cyan text-white"
-              : "bg-surface text-text-secondary hover:text-text-primary"
-          }`}
-        >
-          All Agents
-        </button>
-        {Object.entries(agentCounts).map(([name, count]) => (
-          <button
-            key={name}
-            onClick={() => setSelectedAgent(selectedAgent === name ? null : name)}
-            className={`rounded-full px-2 py-1 text-[10px] font-medium transition-colors ${
-              selectedAgent === name
-                ? "bg-mc-cyan text-white"
-                : "bg-surface text-text-secondary hover:text-text-primary"
-            }`}
-          >
-            {name} <span className="ml-0.5 opacity-60">{count}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Activity feed */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
-        <div className="space-y-1">
-          {events.map((event) => (
-            <div
-              key={event._id}
-              className="flex gap-3 rounded-[var(--radius-inner)] p-2.5 transition-colors hover:bg-surface"
-              style={{ animation: "fadeIn 0.3s ease-out" }}
-            >
-              <div className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${typeColors[event.type] ?? "bg-text-secondary"}`} />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs leading-relaxed text-text-primary">
-                  <span className="font-semibold">{event.agentId}</span>{" "}
-                  <span className="text-text-secondary">{event.message}</span>
-                </p>
-                <span className="text-[10px] text-text-secondary/60">{event.agentId} {formatTimeAgo(event.createdAt)}</span>
-              </div>
-              <ChevronRight className="mt-1 h-3 w-3 shrink-0 text-text-secondary/30" />
+          {/* Activity feed */}
+          <div className="flex-1 overflow-y-auto px-4 pb-4">
+            <div className="space-y-1">
+              {events.map((event) => (
+                <div
+                  key={event._id}
+                  className="flex gap-3 rounded-[var(--radius-inner)] p-2.5 transition-colors hover:bg-surface"
+                  style={{ animation: "fadeIn 0.3s ease-out" }}
+                >
+                  <div className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${typeColors[event.type] ?? "bg-text-secondary"}`} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs leading-relaxed text-text-primary">
+                      <span className="font-semibold">{event.agentId}</span>{" "}
+                      <span className="text-text-secondary">{event.message}</span>
+                    </p>
+                    <span className="text-[10px] text-text-secondary/60">{event.agentId} {formatTimeAgo(event.createdAt)}</span>
+                  </div>
+                  <ChevronRight className="mt-1 h-3 w-3 shrink-0 text-text-secondary/30" />
+                </div>
+              ))}
+              {events.length === 0 && (
+                <div className="py-8 text-center text-xs text-text-secondary/50">No activity matching filters</div>
+              )}
             </div>
-          ))}
-          {events.length === 0 && (
-            <div className="py-8 text-center text-xs text-text-secondary/50">No activity matching filters</div>
-          )}
-        </div>
-      </div>
+          </div>
+        </>
+      )}
     </aside>
   );
 }
