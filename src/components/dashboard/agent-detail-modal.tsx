@@ -38,9 +38,9 @@ const modelOptions = [
 ];
 
 const levelOptions = [
-  { value: "LEAD", label: "LEAD - Leads strategy and direction" },
-  { value: "SPC", label: "SPC - Specialist for advanced work" },
-  { value: "INT", label: "INT - Intermediate contributor" },
+  { value: "LEAD", label: "LEAD - Leadership" },
+  { value: "SPC", label: "SPC - Specialist" },
+  { value: "INT", label: "INT - Intermediate" },
 ];
 const statusOptions = [
   { value: "idle", label: "IDLE" },
@@ -66,11 +66,13 @@ function InfoHint({ text }: { text: string }) {
       <span
         tabIndex={0}
         aria-label={text}
-        className="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-mc-border/60 text-[10px] font-semibold text-text-secondary transition-colors hover:border-mc-border hover:text-text-primary focus-visible:border-text-primary/45 focus-visible:text-text-primary focus-visible:outline-none"
+        className="inline-flex h-5 w-5 cursor-help items-center justify-center rounded-full border border-mc-border/70 bg-surface text-[11px] font-semibold leading-none text-text-secondary shadow-[var(--shadow-elevated)] transition-[border-color,color,background-color,box-shadow] duration-150 ease-out hover:border-text-primary/35 hover:bg-surface-elevated hover:text-text-primary focus-visible:border-text-primary/45 focus-visible:bg-surface-elevated focus-visible:text-text-primary focus-visible:outline-none focus-visible:shadow-[var(--shadow-panel)]"
       >
-        ℹ
+        <span aria-hidden="true" className="translate-y-[-0.5px] font-mono">
+          i
+        </span>
       </span>
-      <span className="pointer-events-none absolute left-1/2 top-[calc(100%+8px)] z-20 w-56 -translate-x-1/2 rounded-[var(--radius-inner)] border border-mc-border/80 bg-surface-elevated p-2 text-[11px] leading-relaxed text-text-secondary opacity-0 shadow-[var(--shadow-panel)] transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-within:opacity-100">
+      <span className="pointer-events-none absolute left-1/2 top-[calc(100%+8px)] z-20 w-64 -translate-x-1/2 rounded-[var(--radius-inner)] border border-mc-border/80 bg-surface-elevated p-2 text-[11px] leading-relaxed text-text-secondary opacity-0 shadow-[var(--shadow-panel)] transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-within:opacity-100">
         {text}
       </span>
     </span>
@@ -208,7 +210,7 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
   const ActiveIcon = iconOptions.find((i) => i.name === draftIcon)?.icon ?? Bot;
   const activeName = draftName.trim() || agent?.name || agentId;
   const fieldLabelClass = "mb-1.5 block text-[11px] font-semibold tracking-[0.15em] text-text-secondary";
-  const labelRowClass = "mb-1.5 flex items-center gap-1.5";
+  const labelRowClass = "mb-1.5 flex min-h-5 items-center gap-2";
   const controlClass =
     "min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border/70 bg-surface px-3 py-2.5 text-sm text-text-primary shadow-[var(--shadow-elevated)] transition-[border-color,box-shadow,background-color] duration-200 ease-out placeholder:text-text-secondary/60 focus-visible:border-text-primary/35 focus-visible:shadow-[var(--shadow-panel)]";
   const selectClass = `${controlClass} appearance-none pr-10 leading-tight`;
@@ -291,7 +293,7 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
             />
           </div>
 
-          <div className="mb-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_112px_140px]">
+          <div className="mb-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(190px,220px)_minmax(170px,190px)]">
             <div className="flex-1">
               <label className={fieldLabelClass}>ROLE</label>
               <input
