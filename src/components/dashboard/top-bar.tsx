@@ -72,51 +72,55 @@ export function TopBar({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 md:gap-2.5">
-        <button
-          onClick={onSearchOpen}
-          aria-label="Open search"
-          className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-xs text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:h-9 md:min-h-9 md:w-auto md:min-w-0 md:justify-start md:gap-2 md:rounded-[var(--radius-pill)] md:px-3"
-        >
-          <Search className="h-3.5 w-3.5" />
-          <span className="hidden md:inline">Search</span>
-          <kbd className="hidden rounded border border-mc-border bg-background px-1 py-0.5 font-mono text-[9px] text-text-secondary md:inline">
-            ⌘K
-          </kbd>
-        </button>
-        <button
-          onClick={onCalendarOpen}
-          aria-label="Open calendar"
-          className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:h-9 md:min-h-9 md:w-9 md:min-w-9 md:rounded-[var(--radius-pill)]"
-        >
-          <Calendar className="h-3.5 w-3.5" />
-        </button>
-        <button
-          onClick={onStandupOpen}
-          aria-label="Open standup report"
-          className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:h-9 md:min-h-9 md:w-auto md:min-w-0 md:rounded-[var(--radius-pill)] md:px-3 md:text-xs md:font-medium"
-        >
-          <ClipboardList className="h-3.5 w-3.5 md:hidden" />
-          <span className="hidden md:inline">Standup</span>
-        </button>
-        <button
-          onClick={toggleTheme}
-          aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-          className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:h-9 md:min-h-9 md:w-9 md:min-w-9 md:rounded-[var(--radius-pill)]"
-        >
-          {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-        </button>
-        <div className="ml-1 hidden text-right md:block">
-          <div className="font-mono text-lg font-bold tabular-nums text-text-primary">
-            {timeStr}
-          </div>
-          <div className="font-mono text-[10px] tracking-[0.2em] text-text-secondary">
-            {dayStr}, {dateStr}
-          </div>
+      <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-1.5 md:gap-2 md:rounded-[var(--radius-pill)] md:border md:border-mc-border/70 md:bg-surface-elevated/70 md:p-1">
+          <button
+            onClick={onSearchOpen}
+            aria-label="Open search"
+            className="hidden min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-xs text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:flex md:h-9 md:min-h-9 md:w-auto md:min-w-0 md:justify-start md:gap-2 md:rounded-[var(--radius-pill)] md:bg-transparent md:px-3 md:shadow-none md:hover:bg-surface md:hover:shadow-none"
+          >
+            <Search className="h-3.5 w-3.5" />
+            <span className="hidden md:inline">Search</span>
+            <kbd className="hidden rounded border border-mc-border bg-background px-1 py-0.5 font-mono text-[9px] text-text-secondary md:inline">
+              ⌘K
+            </kbd>
+          </button>
+          <button
+            onClick={onCalendarOpen}
+            aria-label="Open calendar"
+            className="hidden min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:flex md:h-9 md:min-h-9 md:w-9 md:min-w-9 md:rounded-[var(--radius-pill)] md:bg-transparent md:shadow-none md:hover:bg-surface md:hover:shadow-none"
+          >
+            <Calendar className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={onStandupOpen}
+            aria-label="Open standup report"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:h-9 md:min-h-9 md:w-auto md:min-w-0 md:rounded-[var(--radius-pill)] md:bg-transparent md:px-3 md:text-xs md:font-medium md:shadow-none md:hover:bg-surface md:hover:shadow-none"
+          >
+            <ClipboardList className="h-3.5 w-3.5 md:hidden" />
+            <span className="hidden md:inline">Standup</span>
+          </button>
+          <button
+            onClick={toggleTheme}
+            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:h-9 md:min-h-9 md:w-9 md:min-w-9 md:rounded-[var(--radius-pill)] md:bg-transparent md:shadow-none md:hover:bg-surface md:hover:shadow-none"
+          >
+            {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+          </button>
         </div>
-        <div className="hidden items-center gap-1.5 rounded-[var(--radius-pill)] border border-mc-border bg-surface-elevated px-3 py-1 shadow-[var(--shadow-elevated)] md:flex">
-          <div className="h-2 w-2 rounded-full bg-text-primary animate-pulse-dot" />
-          <span className="font-mono text-xs font-medium tracking-wide text-text-primary">ONLINE</span>
+        <div className="hidden items-center gap-3 border-l border-mc-border/60 pl-3 md:flex">
+          <div className="text-right">
+            <div className="font-mono text-lg font-bold tabular-nums text-text-primary">
+              {timeStr}
+            </div>
+            <div className="font-mono text-[10px] tracking-[0.2em] text-text-secondary">
+              {dayStr}, {dateStr}
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 rounded-[var(--radius-pill)] border border-mc-border bg-surface-elevated px-3 py-1 shadow-[var(--shadow-elevated)]">
+            <div className="h-2 w-2 rounded-full bg-text-primary animate-pulse-dot" />
+            <span className="font-mono text-xs font-medium tracking-wide text-text-primary">ONLINE</span>
+          </div>
         </div>
       </div>
     </header>

@@ -6,7 +6,6 @@ import { TopBar } from "@/components/dashboard/top-bar";
 import { AgentPanel } from "@/components/dashboard/agent-panel";
 import { KanbanBoard } from "@/components/dashboard/kanban-board";
 import { LiveFeedPanel } from "@/components/dashboard/live-feed-panel";
-import { MissionBanner } from "@/components/dashboard/mission-banner";
 import { StandupModal } from "@/components/dashboard/standup-modal";
 import { CalendarView } from "@/components/dashboard/calendar-view";
 import { GlobalSearch } from "@/components/dashboard/global-search";
@@ -87,7 +86,6 @@ export default function Home() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
-      <MissionBanner />
       <TopBar
         isDark={isDark}
         toggleTheme={toggleTheme}
