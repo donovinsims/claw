@@ -3,7 +3,20 @@
 import { useState, useEffect, useCallback, useId, type FocusEvent } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { X, Bot, Shield, Sparkles, Eye, Pen, Share2, Palette, Mail, Code, BookOpen } from "lucide-react";
+import {
+  X,
+  Bot,
+  Shield,
+  Sparkles,
+  Eye,
+  Pen,
+  Share2,
+  Palette,
+  Mail,
+  Code,
+  BookOpen,
+  ChevronDown,
+} from "lucide-react";
 
 const iconOptions = [
   { name: "Shield", icon: Shield },
@@ -171,6 +184,7 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
   const fieldLabelClass = "mb-1.5 block text-[11px] font-semibold tracking-[0.15em] text-text-secondary";
   const controlClass =
     "min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border/70 bg-surface px-3 py-2.5 text-sm text-text-primary shadow-[var(--shadow-elevated)] transition-[border-color,box-shadow,background-color] duration-200 ease-out placeholder:text-text-secondary/60 focus-visible:border-text-primary/35 focus-visible:shadow-[var(--shadow-panel)]";
+  const selectClass = `${controlClass} appearance-none pr-10 leading-tight`;
   const buttonSubtleClass =
     "min-h-11 rounded-[var(--radius-inner)] border border-transparent bg-surface px-4 py-1.5 text-sm font-medium text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface-elevated hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:text-xs";
   const buttonPrimaryClass =
@@ -263,45 +277,54 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
             </div>
             <div>
               <label className={fieldLabelClass}>LEVEL</label>
-              <select
-                value={draftLevel}
-                onChange={(e) => set(setDraftLevel)(e.target.value)}
-                onFocus={keepFieldVisible}
-                className={controlClass}
-              >
-                <option value="">None</option>
-                {levelOptions.map((l) => (
-                  <option key={l} value={l}>{l}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={draftLevel}
+                  onChange={(e) => set(setDraftLevel)(e.target.value)}
+                  onFocus={keepFieldVisible}
+                  className={selectClass}
+                >
+                  <option value="">None</option>
+                  {levelOptions.map((l) => (
+                    <option key={l} value={l}>{l}</option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary/70" />
+              </div>
             </div>
             <div>
               <label className={fieldLabelClass}>STATUS</label>
-              <select
-                value={draftStatus}
-                onChange={(e) => set(setDraftStatus)(e.target.value)}
-                onFocus={keepFieldVisible}
-                className={controlClass}
-              >
-                {statusOptions.map((status) => (
-                  <option key={status} value={status}>{status.toUpperCase()}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={draftStatus}
+                  onChange={(e) => set(setDraftStatus)(e.target.value)}
+                  onFocus={keepFieldVisible}
+                  className={selectClass}
+                >
+                  {statusOptions.map((status) => (
+                    <option key={status} value={status}>{status.toUpperCase()}</option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary/70" />
+              </div>
             </div>
           </div>
 
           <div className="mb-4">
             <label className={fieldLabelClass}>MODEL</label>
-            <select
-              value={draftModel}
-              onChange={(e) => set(setDraftModel)(e.target.value)}
-              onFocus={keepFieldVisible}
-              className={controlClass}
-            >
-              {modelOptions.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={draftModel}
+                onChange={(e) => set(setDraftModel)(e.target.value)}
+                onFocus={keepFieldVisible}
+                className={selectClass}
+              >
+                {modelOptions.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary/70" />
+            </div>
           </div>
 
           <div className="mb-4">
