@@ -45,10 +45,10 @@ export function TopBar({
     : "--- --";
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-mc-border bg-surface px-3 md:px-6">
+    <header className="flex h-16 shrink-0 items-center justify-between border-b border-mc-border/70 bg-surface/95 px-3 shadow-[var(--shadow-panel)] backdrop-blur-sm md:px-6">
       <div className="flex items-center gap-2 md:gap-3">
         <Diamond className="hidden h-5 w-5 text-text-primary md:block" />
-        <span className="font-mono text-xs font-bold tracking-widest text-text-primary md:text-sm">
+        <span className="font-mono text-xs font-semibold tracking-[0.22em] text-text-primary md:text-sm">
           MISSION CONTROL
         </span>
       </div>
@@ -58,7 +58,7 @@ export function TopBar({
           <div className="text-3xl font-bold tracking-tight text-text-primary">
             {stats?.agentsActive ?? 0}
           </div>
-          <div className="font-mono text-[10px] tracking-widest text-text-secondary">
+          <div className="font-mono text-[10px] tracking-[0.2em] text-text-secondary">
             AGENTS ACTIVE
           </div>
         </div>
@@ -66,39 +66,43 @@ export function TopBar({
           <div className="text-3xl font-bold tracking-tight text-text-primary">
             {stats?.tasksInQueue ?? 0}
           </div>
-          <div className="font-mono text-[10px] tracking-widest text-text-secondary">
+          <div className="font-mono text-[10px] tracking-[0.2em] text-text-secondary">
             TASKS IN QUEUE
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 md:gap-2.5">
+      <div className="flex items-center gap-2 md:gap-2.5">
         <button
           onClick={onSearchOpen}
-          className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-inner)] bg-surface-elevated text-xs text-text-secondary transition-colors hover:text-text-primary md:h-8 md:w-auto md:justify-start md:gap-2 md:rounded-full md:px-3"
+          aria-label="Open search"
+          className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-xs text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:h-9 md:min-h-9 md:w-auto md:min-w-0 md:justify-start md:gap-2 md:rounded-[var(--radius-pill)] md:px-3"
         >
           <Search className="h-3.5 w-3.5" />
           <span className="hidden md:inline">Search</span>
-          <kbd className="hidden rounded border border-mc-border bg-surface px-1 py-0.5 font-mono text-[9px] md:inline">
+          <kbd className="hidden rounded border border-mc-border bg-background px-1 py-0.5 font-mono text-[9px] text-text-secondary md:inline">
             ⌘K
           </kbd>
         </button>
         <button
           onClick={onCalendarOpen}
-          className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-inner)] bg-surface-elevated text-text-secondary transition-colors hover:text-text-primary md:h-8 md:w-8 md:rounded-full"
+          aria-label="Open calendar"
+          className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:h-9 md:min-h-9 md:w-9 md:min-w-9 md:rounded-[var(--radius-pill)]"
         >
           <Calendar className="h-3.5 w-3.5" />
         </button>
         <button
           onClick={onStandupOpen}
-          className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-inner)] bg-surface-elevated text-text-secondary transition-colors hover:text-text-primary md:h-auto md:w-auto md:rounded-full md:px-3 md:py-1.5 md:text-xs md:font-medium"
+          aria-label="Open standup report"
+          className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:h-9 md:min-h-9 md:w-auto md:min-w-0 md:rounded-[var(--radius-pill)] md:px-3 md:text-xs md:font-medium"
         >
           <ClipboardList className="h-3.5 w-3.5 md:hidden" />
           <span className="hidden md:inline">Standup</span>
         </button>
         <button
           onClick={toggleTheme}
-          className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-inner)] bg-surface-elevated text-text-secondary transition-colors hover:text-text-primary md:h-8 md:w-8 md:rounded-full"
+          aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+          className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:h-9 md:min-h-9 md:w-9 md:min-w-9 md:rounded-[var(--radius-pill)]"
         >
           {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
         </button>
@@ -106,13 +110,13 @@ export function TopBar({
           <div className="font-mono text-lg font-bold tabular-nums text-text-primary">
             {timeStr}
           </div>
-          <div className="font-mono text-[10px] tracking-widest text-text-secondary">
+          <div className="font-mono text-[10px] tracking-[0.2em] text-text-secondary">
             {dayStr}, {dateStr}
           </div>
         </div>
-        <div className="hidden items-center gap-1.5 rounded-full bg-[#34C759]/15 px-3 py-1 md:flex">
-          <div className="h-2 w-2 rounded-full bg-mc-green animate-pulse-dot" />
-          <span className="font-mono text-xs font-medium text-mc-green">ONLINE</span>
+        <div className="hidden items-center gap-1.5 rounded-[var(--radius-pill)] border border-mc-border bg-surface-elevated px-3 py-1 shadow-[var(--shadow-elevated)] md:flex">
+          <div className="h-2 w-2 rounded-full bg-text-primary animate-pulse-dot" />
+          <span className="font-mono text-xs font-medium tracking-wide text-text-primary">ONLINE</span>
         </div>
       </div>
     </header>

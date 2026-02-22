@@ -115,13 +115,13 @@ export default function Home() {
               />
             </ResizablePanel>
 
-            <ResizableHandle className="w-1 cursor-col-resize bg-mc-border/60 transition-colors hover:bg-mc-cyan/50 data-[resize-handle-state=drag]:bg-mc-cyan" />
+            <ResizableHandle className="w-1 cursor-col-resize bg-mc-border/60 transition-colors duration-200 hover:bg-text-primary/20 data-[resize-handle-state=drag]:bg-text-primary/35" />
 
             <ResizablePanel defaultSize={55} minSize={28}>
               <KanbanBoard />
             </ResizablePanel>
 
-            <ResizableHandle className="w-1 cursor-col-resize bg-mc-border/60 transition-colors hover:bg-mc-cyan/50 data-[resize-handle-state=drag]:bg-mc-cyan" />
+            <ResizableHandle className="w-1 cursor-col-resize bg-mc-border/60 transition-colors duration-200 hover:bg-text-primary/20 data-[resize-handle-state=drag]:bg-text-primary/35" />
 
             <ResizablePanel
               ref={liveFeedPanelRef}

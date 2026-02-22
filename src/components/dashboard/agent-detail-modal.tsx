@@ -151,33 +151,41 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
   if (!open || !agentId) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm md:items-center md:justify-center" onClick={requestClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm md:items-center md:justify-center md:p-4"
+      onClick={requestClose}
+    >
       <div
-        className="relative flex h-[100dvh] w-full flex-col border border-mc-border bg-surface-elevated md:mx-4 md:h-auto md:max-h-[85vh] md:max-w-2xl md:rounded-[var(--radius-outer)]"
+        className="relative flex h-[100dvh] w-full flex-col bg-surface-elevated shadow-[var(--shadow-overlay)] md:h-[min(88dvh,780px)] md:max-w-2xl md:rounded-[var(--radius-outer)] md:border md:border-mc-border"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex-1 overflow-y-auto px-4 pb-24 pt-[calc(env(safe-area-inset-top)+12px)] md:px-6 md:pb-6 md:pt-6">
-          <div className="mb-5 flex items-center justify-between">
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center pt-[calc(env(safe-area-inset-top)+6px)] md:hidden">
+          <div className="h-1 w-10 rounded-full bg-text-secondary/35" />
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 pb-24 pt-[calc(env(safe-area-inset-top)+18px)] md:px-6 md:pb-6 md:pt-0">
+          <div className="sticky top-0 z-10 -mx-4 mb-5 flex items-center justify-between border-b border-mc-border/70 bg-surface-elevated/95 px-4 py-3 backdrop-blur-sm md:-mx-6 md:px-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-inner)] bg-surface text-text-secondary">
+              <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-inner)] border border-mc-border bg-surface text-text-secondary shadow-[var(--shadow-elevated)]">
                 <ActiveIcon className="h-5 w-5" />
               </div>
               <div>
                 <h2 className="text-lg font-bold text-text-primary">{agent?.name ?? agentId}</h2>
-                <p className="text-xs text-text-secondary">{agentId}</p>
+                <p className="text-xs font-medium tracking-wide text-text-secondary">{agentId}</p>
               </div>
             </div>
             <button
               onClick={requestClose}
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary"
+              type="button"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface-elevated hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98]"
               aria-label="Close agent details"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          <div className="mb-4 rounded-[var(--radius-inner)] border border-mc-border bg-surface p-3">
-            <p className="mb-2 text-[10px] font-bold tracking-wider text-text-secondary">AGENT CONTENTS</p>
+          <div className="mb-5 rounded-[var(--radius-inner)] border border-mc-border/80 bg-surface p-3.5 shadow-[var(--shadow-elevated)] md:p-4">
+            <p className="mb-2 text-[11px] font-semibold tracking-[0.18em] text-text-secondary">AGENT CONTENTS</p>
             <div className="grid gap-2 text-xs text-text-secondary md:grid-cols-2">
               <p>
                 <span className="text-text-primary">Current Task:</span>{" "}
@@ -198,33 +206,33 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
           </div>
 
           <div className="mb-4">
-            <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">NAME</label>
+            <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.15em] text-text-secondary">NAME</label>
             <input
               value={draftName}
               onChange={(e) => set(setDraftName)(e.target.value)}
               onFocus={keepFieldVisible}
-              className="min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-2.5 text-sm text-text-primary focus:outline-none focus:border-mc-cyan"
+              className="min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border/80 bg-surface px-3 py-2.5 text-sm text-text-primary shadow-[var(--shadow-elevated)] transition-colors duration-200 ease-out focus:border-text-primary/35"
             />
           </div>
 
-          <div className="mb-4 flex flex-wrap gap-3">
+          <div className="mb-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_112px_140px]">
             <div className="flex-1">
-              <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">ROLE</label>
+              <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.15em] text-text-secondary">ROLE</label>
               <input
                 value={draftRole}
                 onChange={(e) => set(setDraftRole)(e.target.value)}
                 onFocus={keepFieldVisible}
                 placeholder="e.g. Squad Lead"
-                className="min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-2.5 text-sm text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-mc-cyan"
+                className="min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border/80 bg-surface px-3 py-2.5 text-sm text-text-primary shadow-[var(--shadow-elevated)] transition-colors duration-200 ease-out placeholder:text-text-secondary/60 focus:border-text-primary/35"
               />
             </div>
-            <div className="w-28">
-              <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">LEVEL</label>
+            <div>
+              <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.15em] text-text-secondary">LEVEL</label>
               <select
                 value={draftLevel}
                 onChange={(e) => set(setDraftLevel)(e.target.value)}
                 onFocus={keepFieldVisible}
-                className="min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-2.5 text-sm text-text-primary focus:outline-none focus:border-mc-cyan"
+                className="min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border/80 bg-surface px-3 py-2.5 text-sm text-text-primary shadow-[var(--shadow-elevated)] transition-colors duration-200 ease-out focus:border-text-primary/35"
               >
                 <option value="">None</option>
                 {levelOptions.map((l) => (
@@ -232,13 +240,13 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
                 ))}
               </select>
             </div>
-            <div className="w-[132px]">
-              <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">STATUS</label>
+            <div>
+              <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.15em] text-text-secondary">STATUS</label>
               <select
                 value={draftStatus}
                 onChange={(e) => set(setDraftStatus)(e.target.value)}
                 onFocus={keepFieldVisible}
-                className="min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-2.5 text-sm text-text-primary focus:outline-none focus:border-mc-cyan"
+                className="min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border/80 bg-surface px-3 py-2.5 text-sm text-text-primary shadow-[var(--shadow-elevated)] transition-colors duration-200 ease-out focus:border-text-primary/35"
               >
                 {statusOptions.map((status) => (
                   <option key={status} value={status}>{status.toUpperCase()}</option>
@@ -248,12 +256,12 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
           </div>
 
           <div className="mb-4">
-            <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">MODEL</label>
+            <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.15em] text-text-secondary">MODEL</label>
             <select
               value={draftModel}
               onChange={(e) => set(setDraftModel)(e.target.value)}
               onFocus={keepFieldVisible}
-              className="min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-2.5 text-sm text-text-primary focus:outline-none focus:border-mc-cyan"
+              className="min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border/80 bg-surface px-3 py-2.5 text-sm text-text-primary shadow-[var(--shadow-elevated)] transition-colors duration-200 ease-out focus:border-text-primary/35"
             >
               {modelOptions.map((m) => (
                 <option key={m} value={m}>{m}</option>
@@ -262,16 +270,19 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
           </div>
 
           <div className="mb-4">
-            <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">ICON</label>
-            <div className="flex flex-wrap gap-2">
+            <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.15em] text-text-secondary">ICON</label>
+            <div className="flex flex-wrap gap-2.5">
               {iconOptions.map(({ name, icon: Icon }) => (
                 <button
                   key={name}
+                  type="button"
                   onClick={() => set(setDraftIcon)(name)}
-                  className={`flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] transition-colors ${
+                  aria-label={`Set icon to ${name}`}
+                  aria-pressed={draftIcon === name}
+                  className={`flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out active:scale-[0.98] ${
                     draftIcon === name
-                      ? "bg-mc-cyan text-white ring-2 ring-mc-cyan ring-offset-2 ring-offset-surface-elevated"
-                      : "bg-surface text-text-secondary hover:text-text-primary"
+                      ? "border-mc-border bg-text-primary text-background"
+                      : "border-transparent bg-surface text-text-secondary hover:border-mc-border hover:bg-surface-elevated hover:text-text-primary hover:shadow-[var(--shadow-panel)]"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -281,29 +292,31 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
           </div>
 
           <div className="mb-4">
-            <label className="mb-1.5 block text-[10px] font-bold tracking-wider text-text-secondary">SYSTEM PROMPT (SOUL.md)</label>
+            <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.15em] text-text-secondary">SYSTEM PROMPT (SOUL.md)</label>
             <textarea
               value={draftPrompt}
               onChange={(e) => set(setDraftPrompt)(e.target.value)}
               onFocus={keepFieldVisible}
               rows={12}
               placeholder="Enter the agent's system prompt..."
-              className="w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-3 text-sm text-text-primary font-mono placeholder:text-text-secondary/50 focus:outline-none focus:border-mc-cyan"
+              className="w-full rounded-[var(--radius-inner)] border border-mc-border/80 bg-surface p-3 text-sm text-text-primary font-mono shadow-[var(--shadow-elevated)] transition-colors duration-200 ease-out placeholder:text-text-secondary/60 focus:border-text-primary/35"
             />
           </div>
         </div>
 
-        <div className="sticky bottom-0 z-10 flex justify-end gap-2 border-t border-mc-border bg-surface-elevated px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 md:px-6 md:pb-4">
+        <div className="sticky bottom-0 z-10 flex justify-end gap-2 border-t border-mc-border/70 bg-surface-elevated/95 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 backdrop-blur-sm md:px-6 md:pb-4">
           <button
             onClick={requestClose}
-            className="min-h-11 rounded-[var(--radius-inner)] bg-surface px-4 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary"
+            type="button"
+            className="min-h-11 rounded-[var(--radius-inner)] border border-transparent bg-surface px-4 py-1.5 text-xs font-medium text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface-elevated hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98]"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
+            type="button"
             disabled={!hasChanges || isSaving}
-            className="min-h-11 rounded-[var(--radius-inner)] bg-mc-cyan px-4 py-1.5 text-xs font-medium text-white disabled:opacity-40"
+            className="min-h-11 rounded-[var(--radius-inner)] border border-transparent bg-text-primary px-4 py-1.5 text-xs font-semibold text-background shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform,opacity] duration-200 ease-out hover:bg-text-primary/88 hover:shadow-[var(--shadow-panel)] active:scale-[0.98] disabled:opacity-40"
           >
             {isSaving ? "Saving..." : "Save Changes"}
           </button>
@@ -311,7 +324,7 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
 
         {showUnsavedPrompt && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/55 p-4">
-            <div className="w-full max-w-md rounded-[var(--radius-outer)] border border-mc-border bg-surface-elevated p-4">
+            <div className="w-full max-w-md rounded-[var(--radius-outer)] border border-mc-border bg-surface-elevated p-4 shadow-[var(--shadow-overlay)]">
               <h3 className="text-sm font-semibold text-text-primary">Save your changes?</h3>
               <p className="mt-1 text-xs text-text-secondary">
                 You changed this agent. Save before closing the popup?
@@ -319,20 +332,23 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
               <div className="mt-4 flex flex-wrap justify-end gap-2">
                 <button
                   onClick={() => setShowUnsavedPrompt(false)}
-                  className="min-h-11 rounded-[var(--radius-inner)] bg-surface px-3 text-xs font-medium text-text-secondary hover:text-text-primary"
+                  type="button"
+                  className="min-h-11 rounded-[var(--radius-inner)] border border-transparent bg-surface px-3 text-xs font-medium text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface-elevated hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98]"
                 >
                   Keep Editing
                 </button>
                 <button
                   onClick={handleDiscardAndClose}
-                  className="min-h-11 rounded-[var(--radius-inner)] bg-surface px-3 text-xs font-medium text-text-secondary hover:text-text-primary"
+                  type="button"
+                  className="min-h-11 rounded-[var(--radius-inner)] border border-transparent bg-surface px-3 text-xs font-medium text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface-elevated hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98]"
                 >
                   Discard
                 </button>
                 <button
                   onClick={handleSaveAndClose}
+                  type="button"
                   disabled={isSaving}
-                  className="min-h-11 rounded-[var(--radius-inner)] bg-mc-cyan px-3 text-xs font-medium text-white disabled:opacity-40"
+                  className="min-h-11 rounded-[var(--radius-inner)] border border-transparent bg-text-primary px-3 text-xs font-semibold text-background shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform,opacity] duration-200 ease-out hover:bg-text-primary/88 hover:shadow-[var(--shadow-panel)] active:scale-[0.98] disabled:opacity-40"
                 >
                   {isSaving ? "Saving..." : "Save & Close"}
                 </button>

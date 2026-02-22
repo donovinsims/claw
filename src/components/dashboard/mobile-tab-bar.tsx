@@ -19,8 +19,8 @@ export function MobileTabBar({
   onCalendarOpen,
 }: MobileTabBarProps) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-mc-border bg-surface px-2 pb-[calc(env(safe-area-inset-bottom)+8px)] pt-2 md:hidden">
-      <div className="grid grid-cols-5 gap-1">
+    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-mc-border/70 bg-surface/95 px-2 pb-[calc(env(safe-area-inset-bottom)+8px)] pt-2 shadow-[0_-8px_24px_rgba(0,0,0,0.14)] backdrop-blur-sm md:hidden">
+      <div className="grid grid-cols-5 gap-2">
         <TabButton
           label="Queue"
           active={activeTab === "queue"}
@@ -70,10 +70,13 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`flex min-h-11 items-center justify-center gap-1.5 rounded-[var(--radius-inner)] px-2 py-2 text-xs font-medium transition-colors ${
-        active ? "bg-mc-cyan text-white" : "text-text-secondary"
-      }`}
       aria-label={label}
+      aria-current={active ? "page" : undefined}
+      className={`flex min-h-11 items-center justify-center gap-1.5 rounded-[var(--radius-inner)] border px-2 py-2 text-xs font-medium shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out active:scale-[0.98] ${
+        active
+          ? "border-mc-border bg-surface text-text-primary"
+          : "border-transparent bg-surface-elevated text-text-secondary hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)]"
+      }`}
     >
       {icon}
       <span>{label}</span>

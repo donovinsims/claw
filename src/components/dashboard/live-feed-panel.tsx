@@ -6,11 +6,11 @@ import { api } from "../../../convex/_generated/api";
 import { PanelRightClose, PanelRightOpen } from "lucide-react";
 
 const typeColors: Record<string, string> = {
-  task_created: "bg-mc-orange",
-  comment: "bg-mc-cyan",
-  decision: "bg-mc-purple",
-  document: "bg-mc-green",
-  status_change: "bg-mc-blue",
+  task_created: "bg-text-primary",
+  comment: "bg-text-secondary",
+  decision: "bg-text-secondary/80",
+  document: "bg-text-secondary/65",
+  status_change: "bg-text-secondary/50",
 };
 
 const filterTabs = ["All", "Tasks", "Comments", "Decisions", "Docs", "Status"];
@@ -78,14 +78,14 @@ export function LiveFeedPanel({
     return (
       <aside
         className={`flex h-full w-full shrink-0 flex-col bg-background ${
-          isMobileLayout ? "" : "border-l border-mc-border"
+          isMobileLayout ? "" : "border-l border-mc-border/70"
         }`}
       >
         <div className="flex items-center gap-2 px-3 py-4">
           {onToggle && (
             <button
               onClick={onToggle}
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98]"
               aria-label="Expand live feed"
             >
               <PanelRightOpen className="h-4 w-4" />
@@ -99,24 +99,24 @@ export function LiveFeedPanel({
   return (
     <aside
       className={`flex h-full w-full shrink-0 flex-col bg-background ${
-        isMobileLayout ? "" : "border-l border-mc-border"
+        isMobileLayout ? "" : "border-l border-mc-border/70"
       }`}
     >
-      <div className="flex items-center gap-2 px-5 py-4">
+      <div className="flex items-center gap-2 px-4 py-4">
         {onToggle && (
           <button
             onClick={onToggle}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98]"
             aria-label="Collapse live feed"
           >
             <PanelRightClose className="h-4 w-4" />
           </button>
         )}
-        <div className="h-2 w-2 rounded-full bg-mc-green animate-pulse-dot" />
+        <div className="h-2 w-2 rounded-full bg-text-primary animate-pulse-dot" />
         <span className="text-sm font-semibold tracking-wide text-text-primary">LIVE FEED</span>
       </div>
 
-      <div className="flex flex-wrap gap-1.5 px-4 pb-2">
+      <div className="flex flex-wrap gap-2 px-4 pb-2">
         {filterTabs.map((tab) => {
           const typeKey = tabToType[tab];
           const count = typeKey ? (typeCounts[typeKey] ?? 0) : allEvents.length;
@@ -124,11 +124,12 @@ export function LiveFeedPanel({
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`rounded-[var(--radius-pill)] px-2.5 py-1 font-mono text-[10px] font-medium transition-colors ${
+              aria-pressed={activeTab === tab}
+              className={`rounded-[var(--radius-pill)] border px-2.5 py-1 font-mono text-[10px] font-medium shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out active:scale-[0.98] ${
                 activeTab === tab
-                  ? "bg-mc-cyan text-white"
-                  : "bg-surface-elevated text-text-secondary hover:text-text-primary"
-              } ${isMobileLayout ? "min-h-11" : ""}`}
+                  ? "border-mc-border bg-surface text-text-primary"
+                  : "border-transparent bg-surface-elevated text-text-secondary hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)]"
+              } ${isMobileLayout ? "min-h-11 px-3" : ""}`}
             >
               {tab} <span className="ml-0.5 opacity-70">{count}</span>
             </button>
@@ -136,14 +137,15 @@ export function LiveFeedPanel({
         })}
       </div>
 
-      <div className="flex flex-wrap gap-1.5 px-4 pb-3">
+      <div className="flex flex-wrap gap-2 px-4 pb-3">
         <button
           onClick={() => setSelectedAgent(null)}
-          className={`rounded-[var(--radius-pill)] px-2.5 py-1 text-[10px] font-medium transition-colors ${
+          aria-pressed={!selectedAgent}
+          className={`rounded-[var(--radius-pill)] border px-2.5 py-1 text-[10px] font-medium shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out active:scale-[0.98] ${
             !selectedAgent
-              ? "bg-mc-cyan text-white"
-              : "bg-surface text-text-secondary hover:text-text-primary"
-          } ${isMobileLayout ? "min-h-11" : ""}`}
+              ? "border-mc-border bg-surface text-text-primary"
+              : "border-transparent bg-surface-elevated text-text-secondary hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)]"
+          } ${isMobileLayout ? "min-h-11 px-3" : ""}`}
         >
           All Agents
         </button>
@@ -151,11 +153,12 @@ export function LiveFeedPanel({
           <button
             key={name}
             onClick={() => setSelectedAgent(selectedAgent === name ? null : name)}
-            className={`rounded-[var(--radius-pill)] px-2 py-1 text-[10px] font-medium transition-colors ${
+            aria-pressed={selectedAgent === name}
+            className={`rounded-[var(--radius-pill)] border px-2 py-1 text-[10px] font-medium shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out active:scale-[0.98] ${
               selectedAgent === name
-                ? "bg-mc-cyan text-white"
-                : "bg-surface text-text-secondary hover:text-text-primary"
-            } ${isMobileLayout ? "min-h-11" : ""}`}
+                ? "border-mc-border bg-surface text-text-primary"
+                : "border-transparent bg-surface-elevated text-text-secondary hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)]"
+            } ${isMobileLayout ? "min-h-11 px-3" : ""}`}
           >
             {name} <span className="ml-0.5 opacity-60">{count}</span>
           </button>
@@ -163,11 +166,11 @@ export function LiveFeedPanel({
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-4">
-        <div className="space-y-1">
+        <div className="space-y-2">
           {events.map((event) => (
             <div
               key={event._id}
-              className="flex gap-3 rounded-[var(--radius-inner)] p-2.5 transition-colors hover:bg-surface"
+              className="flex gap-3 rounded-[var(--radius-inner)] border border-mc-border/70 bg-surface p-3 shadow-[var(--shadow-elevated)] transition-[background-color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface-elevated hover:shadow-[var(--shadow-panel)]"
               style={{ animation: "fadeIn 0.3s ease-out" }}
             >
               <div
@@ -180,7 +183,7 @@ export function LiveFeedPanel({
                   <span className="font-semibold">{event.agentId}</span>{" "}
                   <span className="text-text-secondary">{event.message}</span>
                 </p>
-                <span className="text-[10px] text-text-secondary/60">
+                <span className="pt-0.5 text-[10px] font-medium text-text-secondary/70">
                   {event.agentId} {formatTimeAgo(event.createdAt)}
                 </span>
               </div>
@@ -188,7 +191,7 @@ export function LiveFeedPanel({
             </div>
           ))}
           {events.length === 0 && (
-            <div className="py-8 text-center text-xs text-text-secondary/50">
+            <div className="rounded-[var(--radius-inner)] border border-mc-border/70 bg-surface p-6 text-center text-xs text-text-secondary/60 shadow-[var(--shadow-elevated)]">
               No activity matching filters
             </div>
           )}
