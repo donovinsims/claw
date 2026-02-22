@@ -1,142 +1,140 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { Search, X, FileText, Users, Activity, CheckSquare } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "convex/react";
+import { Search, X } from "lucide-react";
+import { api } from "../../../convex/_generated/api";
 
-type SearchResult = {
+type SearchRow = {
   id: string;
-  category: "Tasks" | "Documents" | "Agents" | "Activity";
+  kind: "task" | "agent" | "activity";
   title: string;
   snippet: string;
-  timestamp?: string;
+  timestamp?: number;
 };
 
-const allResults: SearchResult[] = [
-  { id: "r1", category: "Tasks", title: "Explore SiteGPT Dashboard & Document All Features", snippet: "Thoroughly explore the entire SiteGPT dashboard...", timestamp: "1 day ago" },
-  { id: "r2", category: "Tasks", title: "SiteGPT vs Zendesk AI Comparison", snippet: "Create a detailed brief for Zendesk AI comparison page", timestamp: "1 day ago" },
-  { id: "r3", category: "Tasks", title: "SiteGPT vs Intercom Fin Comparison", snippet: "Create detailed brief for Intercom Fin comparison page", timestamp: "2 days ago" },
-  { id: "r4", category: "Tasks", title: "Shopify Blog Landing Page", snippet: "Write copy for SiteGPT integration landing page", timestamp: "1 day ago" },
-  { id: "r5", category: "Tasks", title: "Best AI Chatbot for Shopify", snippet: "Write full SEO blog post: Best AI Chatbot for Shopify in 2026", timestamp: "1 day ago" },
-  { id: "r6", category: "Tasks", title: "Product Demo Video Script", snippet: "Create full script for SiteGPT product demo video", timestamp: "1 day ago" },
-  { id: "r7", category: "Tasks", title: "Tweet Content — Real Stories Only", snippet: "Create authentic tweets based on real SiteGPT customer data", timestamp: "8 hours ago" },
-  { id: "r8", category: "Tasks", title: "Email Marketing Strategy", snippet: "Email Marketing Strategy — Userlist-Inspired Lifecycle Campaigns" },
-  { id: "r9", category: "Tasks", title: "Mission Control UI", snippet: "Build real-time agent command center with React + Convex" },
-  { id: "r10", category: "Documents", title: "Shopify Blog Draft v1", snippet: "Draft blog post for Shopify integration page", timestamp: "3 hours ago" },
-  { id: "r11", category: "Documents", title: "API Integration Guide v2", snippet: "Updated API docs for SiteGPT integration", timestamp: "9 hours ago" },
-  { id: "r12", category: "Documents", title: "Customer Interview Notes — Brent", snippet: "Notes from customer interview with Brent about usage patterns", timestamp: "12 hours ago" },
-  { id: "r13", category: "Agents", title: "Jarvis", snippet: "Squad Lead — LEAD — WORKING" },
-  { id: "r14", category: "Agents", title: "Vision", snippet: "SEO Analyst — SPC — WORKING" },
-  { id: "r15", category: "Agents", title: "Loki", snippet: "Content Writer — SPC — WORKING" },
-  { id: "r16", category: "Agents", title: "Fury", snippet: "Customer Researcher — SPC — WORKING" },
-  { id: "r17", category: "Agents", title: "Quill", snippet: "Social Media — INT — WORKING" },
-  { id: "r18", category: "Agents", title: "Friday", snippet: "Developer — INT — WORKING" },
-  { id: "r19", category: "Activity", title: "Quill commented on 'Write Customer Case Studies'", snippet: "2 hours ago", timestamp: "2 hours ago" },
-  { id: "r20", category: "Activity", title: "Vision moved 'SEO Strategy' to Review", snippet: "4 hours ago", timestamp: "4 hours ago" },
-  { id: "r21", category: "Activity", title: "Friday deployed Mission Control UI update", snippet: "6 hours ago", timestamp: "6 hours ago" },
-];
-
-const categoryIcons: Record<string, typeof Search> = {
-  Tasks: CheckSquare,
-  Documents: FileText,
-  Agents: Users,
-  Activity: Activity,
-};
+function formatTimestamp(value?: number): string {
+  if (!value) return "";
+  return new Date(value).toLocaleString();
+}
 
 export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState("");
 
-  const results = useMemo(() => {
-    if (!query.trim()) return [];
-    const q = query.toLowerCase();
-    return allResults.filter(
-      (r) => r.title.toLowerCase().includes(q) || r.snippet.toLowerCase().includes(q)
-    );
-  }, [query]);
+  const tasksByStatusQuery = useQuery(api.queries.getTasksByStatus);
+  const agentsQuery = useQuery(api.queries.getAgents);
+  const activityQuery = useQuery(api.queries.getActivityFeed, { limit: 120 });
 
-  const grouped = useMemo(() => {
-    const groups: Record<string, SearchResult[]> = {};
-    for (const r of results) {
-      if (!groups[r.category]) groups[r.category] = [];
-      groups[r.category].push(r);
+  const rows = useMemo<SearchRow[]>(() => {
+    const tasksByStatus = tasksByStatusQuery ?? {};
+    const agents = agentsQuery ?? [];
+    const activity = activityQuery ?? [];
+
+    const output: SearchRow[] = [];
+
+    for (const [status, tasks] of Object.entries(tasksByStatus)) {
+      for (const task of tasks ?? []) {
+        output.push({
+          id: `task-${task._id}`,
+          kind: "task",
+          title: task.title,
+          snippet: `${task.description ?? "No description"} · ${status}`,
+          timestamp: task.updatedAt,
+        });
+      }
     }
-    return groups;
-  }, [results]);
+
+    for (const agent of agents) {
+      output.push({
+        id: `agent-${agent.agentId}`,
+        kind: "agent",
+        title: agent.name,
+        snippet: `${agent.role ?? agent.agentId} · ${agent.status}`,
+        timestamp: agent.lastActive,
+      });
+    }
+
+    for (const event of activity) {
+      output.push({
+        id: `activity-${event._id}`,
+        kind: "activity",
+        title: `${event.agentId} · ${event.type}`,
+        snippet: event.message,
+        timestamp: event.createdAt,
+      });
+    }
+
+    return output.sort((left, right) => (right.timestamp ?? 0) - (left.timestamp ?? 0));
+  }, [tasksByStatusQuery, agentsQuery, activityQuery]);
+
+  const results = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return [];
+
+    return rows.filter((row) => {
+      const content = `${row.title}\n${row.snippet}\n${row.kind}`.toLowerCase();
+      return content.includes(needle);
+    });
+  }, [query, rows]);
 
   useEffect(() => {
-    if (!open) {
-      setQuery("");
-    }
+    if (!open) setQuery("");
   }, [open]);
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/55 backdrop-blur-sm md:items-start md:justify-center md:pt-[13vh]" onClick={onClose}>
-      <div
-        className="flex h-[88dvh] w-full flex-col overflow-hidden rounded-t-[var(--radius-outer)] border border-mc-border bg-surface-elevated shadow-[var(--shadow-overlay)] md:h-auto md:max-w-xl md:rounded-[var(--radius-outer)]"
-        onClick={(e) => e.stopPropagation()}
+    <div className="fixed inset-0 z-50 flex items-end bg-black/45 backdrop-blur-sm md:items-start md:justify-center md:pt-[12vh]" onClick={onClose}>
+      <section
+        className="flex h-[88dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[var(--shadow-overlay)] md:h-auto md:max-h-[74vh] md:rounded-2xl"
+        onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center gap-3 border-b border-mc-border/75 px-4 py-3">
-          <Search className="h-4 w-4 shrink-0 text-text-secondary" />
+        <div className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-3">
+          <Search className="h-4 w-4 text-[var(--text-secondary)]" />
           <input
             autoFocus
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search tasks, documents, agents..."
-            className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-secondary/60 focus:outline-none"
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search tasks, agents, and activity"
+            className="flex-1 bg-transparent text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/70 focus:outline-none"
           />
-          <kbd className="hidden rounded-md border border-mc-border bg-surface px-1.5 py-0.5 font-mono text-[10px] text-text-secondary md:inline">
-            ESC
-          </kbd>
           <button
+            type="button"
             onClick={onClose}
-            className="interactive-lift mc-icon-button border-transparent bg-transparent shadow-none hover:bg-surface md:hidden"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)]"
             aria-label="Close search"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {query.trim() && (
-          <div className="max-h-[58dvh] overflow-y-auto p-2 pb-[calc(env(safe-area-inset-bottom)+8px)] md:max-h-[50vh] md:pb-2">
-            {Object.entries(grouped).length === 0 && (
-              <div className="py-8 text-center text-sm text-text-secondary">No results for &ldquo;{query}&rdquo;</div>
-            )}
-            {Object.entries(grouped).map(([category, items]) => {
-              const Icon = categoryIcons[category] || Search;
-              return (
-                <div key={category} className="mb-3">
-                  <div className="flex items-center gap-2 px-3 py-1.5">
-                    <Icon className="h-3 w-3 text-text-secondary" />
-                    <span className="text-[10px] font-bold tracking-wider text-text-secondary">{category.toUpperCase()}</span>
-                  </div>
-                  {items.map((item) => (
-                    <button
-                      key={item.id}
-                      className="interactive-lift flex w-full items-start gap-3 rounded-[var(--radius-inner)] border border-transparent px-3 py-2 text-left hover:border-mc-border/70 hover:bg-surface"
-                      onClick={onClose}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm font-medium text-text-primary">{item.title}</div>
-                        <div className="text-xs text-text-secondary line-clamp-1">{item.snippet}</div>
-                      </div>
-                      {item.timestamp && (
-                        <span className="shrink-0 text-[10px] text-text-secondary/60">{item.timestamp}</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <div className="min-h-0 flex-1 overflow-y-auto p-2">
+          {query.trim().length === 0 && (
+            <div className="p-4 text-sm text-[var(--text-secondary)]">Start typing to search live dashboard data.</div>
+          )}
 
-        {!query.trim() && (
-          <div className="p-6 text-center text-sm text-text-secondary/50">
-            Start typing to search across all data...
-          </div>
-        )}
-      </div>
+          {query.trim().length > 0 && results.length === 0 && (
+            <div className="p-4 text-sm text-[var(--text-secondary)]">
+              No results for &ldquo;{query}&rdquo;.
+            </div>
+          )}
+
+          {results.map((row) => (
+            <article key={row.id} className="rounded-xl border border-transparent px-3 py-2 hover:border-[var(--border)] hover:bg-[var(--bg-surface-elevated)]">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">{row.title}</p>
+                  <p className="text-xs text-[var(--text-secondary)]">{row.snippet}</p>
+                </div>
+                <div className="text-right text-[11px] text-[var(--text-secondary)]">
+                  <p>{row.kind.toUpperCase()}</p>
+                  <p>{formatTimestamp(row.timestamp)}</p>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

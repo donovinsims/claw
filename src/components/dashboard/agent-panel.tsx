@@ -17,6 +17,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
+import { readStoredAgentStyles, resolveAgentStyle } from "@/components/dashboard/agent-visuals";
+import type { AgentVisualStyle } from "@/components/dashboard/types";
 
 const iconMap: Record<string, typeof Shield> = {
   Shield,
@@ -31,24 +33,36 @@ const iconMap: Record<string, typeof Shield> = {
   BookOpen,
 };
 
-const levelColors: Record<string, string> = {
-  LEAD: "border border-gray-100 bg-gray-50 text-gray-500",
-  INT: "border border-gray-100 bg-gray-50 text-gray-400",
-  SPC: "border border-gray-100 bg-gray-50 text-gray-400",
-};
-const AGENT_STYLE_KEY = "mc.agentStyles.v4";
-
-type AgentStyle = {
-  accent: string;
-  gradient: string;
-};
-
 type AgentPanelProps = {
   onAgentClick?: (agentId: string) => void;
   layout?: "desktop" | "mobile";
   isOpen?: boolean;
   onToggle?: () => void;
 };
+
+function statusLabel(status: string): string {
+  switch (status) {
+    case "working":
+      return "Working";
+    case "error":
+      return "Error";
+    case "offline":
+      return "Offline";
+    default:
+      return "Idle";
+  }
+}
+
+function statusDotClass(status: string): string {
+  switch (status) {
+    case "working":
+      return "bg-[var(--status-success)]";
+    case "error":
+      return "bg-[var(--status-error)]";
+    default:
+      return "bg-[var(--text-secondary)]/35";
+  }
+}
 
 export function AgentPanel({
   onAgentClick,
@@ -58,52 +72,31 @@ export function AgentPanel({
 }: AgentPanelProps) {
   const agents = useQuery(api.queries.getAgents) ?? [];
   const isMobileLayout = layout === "mobile";
-  const [agentStyles, setAgentStyles] = useState<Record<string, AgentStyle>>({});
+  const [storedStyles, setStoredStyles] = useState<Record<string, AgentVisualStyle>>({});
 
   useEffect(() => {
-    const handleStorageChange = () => {
-      const raw = window.localStorage.getItem(AGENT_STYLE_KEY);
-      if (!raw) {
-        setAgentStyles({});
-        return;
-      }
-      try {
-        const parsed = JSON.parse(raw) as Record<string, AgentStyle>;
-        const sanitized = Object.fromEntries(
-          Object.entries(parsed).filter(
-            ([, style]) =>
-              typeof style === "object" &&
-              style !== null &&
-              typeof style.accent === "string" &&
-              typeof style.gradient === "string"
-          )
-        );
-        setAgentStyles(sanitized);
-      } catch {
-        window.localStorage.removeItem(AGENT_STYLE_KEY);
-      }
+    const syncStyles = () => {
+      setStoredStyles(readStoredAgentStyles());
     };
 
-    handleStorageChange();
-
-    window.addEventListener("storage", handleStorageChange);
-    // Custom event to sync up across components in the same window
-    window.addEventListener("agent-style-updated", handleStorageChange);
+    syncStyles();
+    window.addEventListener("storage", syncStyles);
+    window.addEventListener("agent-style-updated", syncStyles);
 
     return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("agent-style-updated", handleStorageChange);
+      window.removeEventListener("storage", syncStyles);
+      window.removeEventListener("agent-style-updated", syncStyles);
     };
   }, []);
 
   if (!isMobileLayout && !isOpen) {
     return (
-      <aside className="flex h-full w-full shrink-0 flex-col border-r border-mc-border/70 bg-background">
+      <aside className="flex h-full w-full shrink-0 flex-col">
         <div className="flex items-center justify-center px-2 py-4">
           {onToggle && (
             <button
               onClick={onToggle}
-              className="interactive-lift mc-icon-button"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
               aria-label="Expand agent sidebar"
             >
               <PanelLeftOpen className="h-4 w-4" />
@@ -115,95 +108,111 @@ export function AgentPanel({
   }
 
   return (
-    <aside
-      className={`flex h-full shrink-0 flex-col bg-white ${isMobileLayout ? "w-full" : "w-full border-r border-gray-100"
-        }`}
-    >
-      <div className="border-b border-gray-50 px-6 py-5">
+    <aside className={`flex h-full shrink-0 flex-col ${isMobileLayout ? "w-full" : "w-full"}`}>
+      <div className="border-b border-[var(--border)] px-4 py-4">
         <div className="flex items-center gap-2">
           {onToggle && !isMobileLayout && (
             <button
               onClick={onToggle}
-              className="text-gray-400 hover:text-gray-600 transition-colors mr-2"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
               aria-label="Collapse agent sidebar"
             >
-              <PanelLeftClose className="h-5 w-5" />
+              <PanelLeftClose className="h-4 w-4" />
             </button>
           )}
-          <div className="h-2 w-2 rounded-full bg-gray-900" />
-          <span className="text-sm font-bold tracking-tight text-[#1A1A1A]">AGENTS</span>
-          <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-gray-100 bg-gray-50 px-1.5 text-[11px] font-bold text-gray-500">
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-secondary)]">
+            Agents
+          </span>
+          <span className="ml-auto inline-flex min-h-6 min-w-6 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--bg-surface-elevated)] px-1.5 text-xs font-semibold text-[var(--text-secondary)]">
             {agents.length}
           </span>
         </div>
-        <p className="pt-1.5 text-[11px] leading-snug text-gray-400 font-medium tracking-tight">Access agent detailed context and autonomous activity logs.</p>
       </div>
-      <div className="flex-1 overflow-y-auto px-3 pb-4">
+
+      <div className="flex-1 overflow-y-auto px-3 py-3">
         <div className="flex flex-col gap-2">
           {agents.map((agent) => {
             const IconComponent = iconMap[agent.icon ?? "Bot"] ?? Bot;
-            const agentStyle = agentStyles[agent.agentId];
-            const accentStyle = agentStyle
-              ? ({
-                "--agent-gradient": agentStyle.gradient,
-                "--agent-accent": agentStyle.accent,
-              } as CSSProperties)
-              : undefined;
+            const style = resolveAgentStyle(agent.agentId, storedStyles);
+            const cardStyle = {
+              "--agent-gradient": style.gradient,
+              "--agent-accent": style.accent,
+              borderColor: "color-mix(in srgb, var(--agent-accent) 60%, rgba(255,255,255,.42))",
+              boxShadow:
+                "0 0 0 1px color-mix(in srgb, var(--agent-accent) 58%, rgba(255,255,255,.35)), 0 16px 34px color-mix(in srgb, var(--agent-accent) 42%, transparent), inset 0 0 36px color-mix(in srgb, var(--agent-accent) 22%, transparent)",
+            } as CSSProperties;
+
             return (
-              <article
+              <button
                 key={agent.agentId}
-                className="space-y-1.5"
+                type="button"
+                onClick={() => onAgentClick?.(agent.agentId)}
+                disabled={!onAgentClick}
+                style={cardStyle}
+                className="group relative overflow-hidden rounded-xl border bg-transparent p-3 text-left transition-all duration-200 hover:-translate-y-[1px] disabled:cursor-default"
+                aria-label={`Open ${agent.name} details`}
               >
-                <button
-                  type="button"
-                  onClick={() => onAgentClick?.(agent.agentId)}
-                  disabled={!onAgentClick}
-                  style={accentStyle}
-                  className="group flex w-full items-center gap-3 rounded-xl border border-transparent bg-white p-3 text-left hover:border-gray-100 hover:shadow-sm transition-all disabled:cursor-default"
-                  aria-label={`Open ${agent.name} details`}
-                >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-100 bg-gray-50 text-gray-400 transition-colors group-hover:text-gray-600">
+                <div
+                  className="pointer-events-none absolute inset-0 opacity-100"
+                  style={{ background: "var(--agent-gradient)" }}
+                />
+                <div
+                  className="pointer-events-none absolute inset-0 opacity-70"
+                  style={{
+                    background:
+                      "radial-gradient(120% 100% at 12% 0%, rgba(255,255,255,.36) 0%, rgba(255,255,255,0) 52%)",
+                  }}
+                />
+                <div className="pointer-events-none absolute inset-0" style={{ background: "var(--agent-card-mask)" }} />
+
+                <div className="relative flex items-center gap-3">
+                  <div
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-[var(--agent-card-fg)]"
+                    style={{
+                      background: "var(--agent-card-icon-bg)",
+                      borderColor: "var(--agent-card-icon-border)",
+                      boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--agent-accent) 48%, transparent)",
+                    }}
+                  >
                     <IconComponent className="h-5 w-5" />
                   </div>
+
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="truncate text-sm font-bold text-[#1A1A1A]">
+                      <span className="truncate text-sm font-semibold text-[var(--agent-card-fg)] [text-shadow:0_1px_2px_rgba(0,0,0,.55)]">
                         {agent.name}
                       </span>
                       {agent.level && (
                         <span
-                          className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold tracking-tight ${levelColors[agent.level] ?? ""}`}
+                          className="rounded-md border px-1.5 py-0.5 text-[10px] font-semibold"
+                          style={{
+                            background: "var(--agent-card-chip-bg)",
+                            borderColor: "var(--agent-card-chip-border)",
+                            color: "var(--agent-card-fg)",
+                          }}
                         >
                           {agent.level}
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-1.5 pt-0.5">
-                      <span className="truncate text-[11px] font-medium text-gray-400">
-                        {agent.role ?? agent.agentId}
-                      </span>
-                    </div>
+                    <p className="truncate pt-0.5 text-xs text-[var(--agent-card-fg-muted)] [text-shadow:0_1px_2px_rgba(0,0,0,.45)]">
+                      {agent.role ?? agent.agentId}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-1.5 rounded-md border border-gray-100 bg-gray-50 px-2 py-1">
-                    <div
-                      className={`h-2 w-2 rounded-full ${agent.status === "working"
-                        ? "bg-green-500 animate-pulse"
-                        : "bg-gray-300"
-                        }`}
-                    />
-                    <span
-                      className={`text-[10px] font-bold tracking-tight ${agent.status === "working" ? "text-green-600" : "text-gray-400"
-                        }`}
-                    >
-                      {agent.status === "working" ? "WORKING" : "IDLE"}
-                    </span>
-                  </div>
-                </button>
 
-                <div className="flex items-center justify-end gap-1">
+                  <div
+                    className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-semibold"
+                    style={{
+                      background: "var(--agent-card-chip-bg)",
+                      borderColor: "var(--agent-card-chip-border)",
+                      color: "var(--agent-card-fg)",
+                    }}
+                  >
+                    <span className={`h-2 w-2 rounded-full ${statusDotClass(agent.status)}`} />
+                    <span>{statusLabel(agent.status)}</span>
+                  </div>
                 </div>
-
-              </article>
+              </button>
             );
           })}
         </div>

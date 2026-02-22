@@ -1,91 +1,85 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { PanelRightClose, PanelRightOpen } from "lucide-react";
 
-const typeColors: Record<string, string> = {
-  task_created: "bg-mc-accent",
-  comment: "bg-text-secondary",
-  decision: "bg-mc-warning",
-  document: "bg-mc-accent/70",
-  status_change: "bg-mc-success",
-};
+const tabs = ["All", "Comments", "Status", "Decisions"] as const;
+type FeedTab = (typeof tabs)[number];
 
-const filterTabs = ["All", "Tasks", "Comments", "Decisions", "Docs", "Status"];
-const tabToType: Record<string, string | null> = {
-  All: null,
-  Tasks: "task_created",
-  Comments: "comment",
-  Decisions: "decision",
-  Docs: "document",
-  Status: "status_change",
-};
+function toFeedType(tab: FeedTab): string | undefined {
+  switch (tab) {
+    case "Comments":
+      return "comment";
+    case "Status":
+      return "status_change";
+    case "Decisions":
+      return "decision";
+    default:
+      return undefined;
+  }
+}
 
 function formatTimeAgo(timestamp: number): string {
   const diff = Date.now() - timestamp;
-  const hours = Math.floor(diff / 3600000);
-  if (hours < 1) return "just now";
-  if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
-  return `${days} day${days > 1 ? "s" : ""} ago`;
+  return `${days}d ago`;
+}
+
+function eventDotClass(type: string, message: string): string {
+  if (type === "status_change" && /error|failed|fail|blocked/i.test(message)) {
+    return "bg-[var(--status-error)]";
+  }
+  if (type === "status_change" && /done|complete|completed|success/i.test(message)) {
+    return "bg-[var(--status-success)]";
+  }
+  return "bg-[var(--text-secondary)]/40";
 }
 
 type LiveFeedPanelProps = {
-  layout?: "desktop" | "mobile";
   isOpen?: boolean;
   onToggle?: () => void;
 };
 
-export function LiveFeedPanel({
-  layout = "desktop",
-  isOpen = true,
-  onToggle,
-}: LiveFeedPanelProps) {
-  const [activeTab, setActiveTab] = useState("All");
+export function LiveFeedPanel({ isOpen = true, onToggle }: LiveFeedPanelProps) {
+  const [tab, setTab] = useState<FeedTab>("All");
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
-  const isMobileLayout = layout === "mobile";
 
-  const typeFilter = tabToType[activeTab];
-  const eventsQuery = useQuery(api.queries.getActivityFeed, {
-    limit: 50,
-    type: typeFilter ?? undefined,
+  const type = toFeedType(tab);
+  const feedQuery = useQuery(api.queries.getActivityFeed, {
+    limit: 100,
+    type,
     agentId: selectedAgent ?? undefined,
   });
-  const events = useMemo(() => eventsQuery ?? [], [eventsQuery]);
 
-  const allEventsQuery = useQuery(api.queries.getActivityFeed, { limit: 200 });
-  const allEvents = useMemo(() => allEventsQuery ?? [], [allEventsQuery]);
+  const allFeedQuery = useQuery(api.queries.getActivityFeed, { limit: 250 });
+  const events = feedQuery ?? [];
 
   const agentCounts = useMemo(() => {
+    const allFeed = allFeedQuery ?? [];
     const counts: Record<string, number> = {};
-    for (const e of allEvents) {
-      counts[e.agentId] = (counts[e.agentId] ?? 0) + 1;
+    for (const event of allFeed) {
+      counts[event.agentId] = (counts[event.agentId] ?? 0) + 1;
     }
     return counts;
-  }, [allEvents]);
-
-  const typeCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const e of allEvents) {
-      counts[e.type] = (counts[e.type] ?? 0) + 1;
-    }
-    return counts;
-  }, [allEvents]);
+  }, [allFeedQuery]);
 
   if (!isOpen) {
     return (
-      <aside
-        className={`flex h-full w-full shrink-0 flex-col bg-background ${isMobileLayout ? "" : "border-l border-mc-border/70"
-          }`}
-      >
-        <div className="flex items-center gap-2 px-3 py-4">
+      <aside className="flex h-full w-full flex-col">
+        <div className="flex justify-center px-2 py-4">
           {onToggle && (
             <button
+              type="button"
               onClick={onToggle}
-              className="interactive-lift mc-icon-button"
-              aria-label="Expand live feed"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+              aria-label="Expand context rail"
             >
               <PanelRightOpen className="h-4 w-4" />
             </button>
@@ -96,98 +90,102 @@ export function LiveFeedPanel({
   }
 
   return (
-    <aside
-      className={`flex h-full w-full shrink-0 flex-col bg-background ${isMobileLayout ? "" : "border-l border-white/5"
-        }`}
-    >
-      <div className="border-b border-white/5 px-4 py-3">
+    <aside className="flex h-full w-full flex-col">
+      <div className="border-b border-[var(--border)] px-4 py-4">
         <div className="flex items-center gap-2">
           {onToggle && (
             <button
+              type="button"
               onClick={onToggle}
-              className="mc-icon-button hover:bg-surface/80"
-              aria-label="Collapse live feed"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+              aria-label="Collapse context rail"
             >
               <PanelRightClose className="h-4 w-4" />
             </button>
           )}
-          <div className="h-1.5 w-1.5 rounded-full bg-mc-accent animate-pulse-dot" />
-          <span className="text-[11px] font-semibold tracking-wider text-text-primary">LIVE FEED</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-secondary)]">
+            Context Rail
+          </span>
         </div>
-        <p className="pt-1.5 text-[10px] text-text-secondary">Filter by event type or agent to isolate what matters now.</p>
+        <p className="pt-1 text-xs text-[var(--text-secondary)]">
+          Realtime activity flowing from bridge events.
+        </p>
       </div>
 
-      <div className="flex flex-wrap gap-2 px-4 pb-2 border-b border-white/5 pt-3">
-        {filterTabs.map((tab) => {
-          const typeKey = tabToType[tab];
-          const count = typeKey ? (typeCounts[typeKey] ?? 0) : allEvents.length;
-          return (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              aria-pressed={activeTab === tab ? "true" : "false"}
-              className={`rounded-[var(--radius-pill)] border px-2.5 py-1 font-mono text-[9px] font-medium transition-colors ${activeTab === tab
-                ? "border-white/10 bg-card text-text-primary"
-                : "border-transparent bg-transparent text-text-secondary hover:bg-card hover:text-text-primary"
-                } ${isMobileLayout ? "min-h-11 px-3" : ""}`}
-            >
-              {tab} <span className="ml-0.5 opacity-60">{count}</span>
-            </button>
-          );
-        })}
-      </div>
+      <div className="border-b border-[var(--border)] px-4 py-3">
+        <div className="flex flex-wrap gap-1.5">
+          {tabs.map((entry) => {
+            const active = tab === entry;
+            return (
+              <button
+                key={entry}
+                type="button"
+                onClick={() => setTab(entry)}
+                className={`rounded-lg border px-2 py-1 text-[11px] font-medium transition-colors ${
+                  active
+                    ? "border-[var(--border)] bg-[var(--bg-surface-elevated)] text-[var(--text-primary)]"
+                    : "border-transparent bg-transparent text-[var(--text-secondary)] hover:border-[var(--border)]"
+                }`}
+              >
+                {entry}
+              </button>
+            );
+          })}
+        </div>
 
-      <div className="flex flex-wrap gap-1.5 px-4 pb-3 pt-3">
-        <button
-          onClick={() => setSelectedAgent(null)}
-          aria-pressed={!selectedAgent ? "true" : "false"}
-          className={`rounded-[var(--radius-pill)] border px-2 py-0.5 text-[10px] font-medium transition-colors ${!selectedAgent
-            ? "border-white/10 bg-card text-text-primary"
-            : "border-transparent bg-transparent text-text-secondary hover:bg-card hover:text-text-primary"
-            } ${isMobileLayout ? "min-h-11 px-3" : ""}`}
-        >
-          All Agents
-        </button>
-        {Object.entries(agentCounts).map(([name, count]) => (
+        <div className="mt-2 flex flex-wrap gap-1.5">
           <button
-            key={name}
-            onClick={() => setSelectedAgent(selectedAgent === name ? null : name)}
-            aria-pressed={selectedAgent === name ? "true" : "false"}
-            className={`rounded-[var(--radius-pill)] border px-2 py-0.5 text-[10px] font-medium transition-colors ${selectedAgent === name
-              ? "border-white/10 bg-card text-text-primary"
-              : "border-transparent bg-transparent text-text-secondary hover:bg-card hover:text-text-primary"
-              } ${isMobileLayout ? "min-h-11 px-3" : ""}`}
+            type="button"
+            onClick={() => setSelectedAgent(null)}
+            className={`rounded-lg border px-2 py-1 text-[11px] font-medium transition-colors ${
+              selectedAgent === null
+                ? "border-[var(--border)] bg-[var(--bg-surface-elevated)] text-[var(--text-primary)]"
+                : "border-transparent bg-transparent text-[var(--text-secondary)] hover:border-[var(--border)]"
+            }`}
           >
-            {name} <span className="ml-0.5 opacity-50">{count}</span>
+            All Agents
           </button>
-        ))}
+          {Object.entries(agentCounts)
+            .slice(0, 8)
+            .map(([agentId, count]) => {
+              const active = selectedAgent === agentId;
+              return (
+                <button
+                  key={agentId}
+                  type="button"
+                  onClick={() => setSelectedAgent(active ? null : agentId)}
+                  className={`rounded-lg border px-2 py-1 text-[11px] font-medium transition-colors ${
+                    active
+                      ? "border-[var(--border)] bg-[var(--bg-surface-elevated)] text-[var(--text-primary)]"
+                      : "border-transparent bg-transparent text-[var(--text-secondary)] hover:border-[var(--border)]"
+                  }`}
+                >
+                  {agentId} <span className="opacity-65">{count}</span>
+                </button>
+              );
+            })}
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">
         <div className="flex flex-col">
           {events.map((event) => (
-            <div
-              key={event._id}
-              className="animate-enter flex gap-3 border-b border-white/5 py-2.5 transition-colors hover:bg-card group"
-            >
-              <div
-                className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${typeColors[event.type] ?? "bg-text-secondary"
-                  }`}
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] leading-relaxed text-text-primary">
-                  <span className="font-semibold text-text-secondary">{event.agentId}</span>{" "}
-                  <span className="text-text-secondary/90">{event.message}</span>
-                </p>
-                <span className="pt-0.5 text-[9px] font-medium text-text-secondary/50">
-                  {formatTimeAgo(event.createdAt)}
-                </span>
+            <article key={event._id} className="border-b border-[var(--divider)] py-2.5">
+              <div className="flex gap-2.5">
+                <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${eventDotClass(event.type, event.message)}`} />
+                <div className="min-w-0">
+                  <p className="text-xs text-[var(--text-primary)]">
+                    <span className="font-semibold">{event.agentId}</span> {event.message}
+                  </p>
+                  <p className="pt-0.5 text-[11px] text-[var(--text-secondary)]">{formatTimeAgo(event.createdAt)}</p>
+                </div>
               </div>
-            </div>
+            </article>
           ))}
+
           {events.length === 0 && (
-            <div className="rounded-[var(--radius-inner)] border border-white/5 bg-card p-6 text-center text-xs text-text-secondary/70">
-              No activity matching filters
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] p-4 text-center text-xs text-[var(--text-secondary)]">
+              No activity for this filter.
             </div>
           )}
         </div>

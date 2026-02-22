@@ -28,22 +28,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="light">
-      <body
-        className={`${dmSans.variable} ${ibmPlexMono.variable} bg-[var(--color-bg)] text-[var(--color-text-primary)] antialiased`}
-      >
+    <html lang="en">
+      <body className={`${dmSans.variable} ${ibmPlexMono.variable} antialiased`}>
         <ConvexClientProvider>
           {children}
           <Toaster
             richColors
             closeButton
             position="bottom-right"
-            duration={2400}
+            duration={2200}
             toastOptions={{
               classNames: {
-                toast:
-                  "border border-gray-100 bg-white text-gray-900 shadow-lg",
-                description: "text-gray-500",
+                toast: "border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)]",
+                description: "text-[var(--text-secondary)]",
               },
             }}
           />

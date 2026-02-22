@@ -1,28 +1,30 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import type { Id } from "../../../convex/_generated/dataModel";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery } from "convex/react";
 import {
   DndContext,
   DragOverlay,
-  closestCorners,
   PointerSensor,
+  closestCorners,
   useSensor,
   useSensors,
-  type DragStartEvent,
+  type DraggableAttributes,
+  type DraggableSyntheticListeners,
   type DragEndEvent,
   type DragOverEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
-import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Calendar } from "lucide-react";
+import { Archive, Plus, GripVertical, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
+import type { AssigneeId } from "@/components/dashboard/types";
 
-export type Task = {
+type Task = {
   _id: Id<"tasks">;
   title: string;
   description?: string;
@@ -32,323 +34,532 @@ export type Task = {
   status: string;
   createdAt: number;
   updatedAt: number;
-  completedAt?: number;
-  archivedAt?: number;
 };
 
-const columnDefs = [
-  { id: "inbox", name: "To Do List" },
-  { id: "assigned", name: "In Progress List" },
-  { id: "in_progress", name: "In Review" },
-  { id: "review", name: "Completed" },
+const STATUS_COLUMNS: Array<{ id: string; label: string }> = [
+  { id: "inbox", label: "Inbox" },
+  { id: "assigned", label: "Assigned" },
+  { id: "in_progress", label: "In Progress" },
+  { id: "review", label: "Review" },
+  { id: "done", label: "Done" },
 ];
-const statusLabel: Record<string, string> = {
-  inbox: "To Do List",
-  assigned: "In Progress List",
-  in_progress: "In Review",
-  review: "Completed",
-};
 
-type MoveTaskHandler = (taskId: Task["_id"], status: string) => void;
+const PRIORITIES = ["low", "normal", "high"] as const;
+
+function statusLabel(status: string): string {
+  const match = STATUS_COLUMNS.find((column) => column.id === status);
+  return match?.label ?? status;
+}
+
+function formatUpdatedAt(timestamp: number): string {
+  const diffMinutes = Math.floor((Date.now() - timestamp) / 60000);
+  if (diffMinutes < 1) return "just now";
+  if (diffMinutes < 60) return `${diffMinutes}m`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d`;
+}
+
+function assigneeLabel(assignee: string | undefined, lookup: Map<string, string>): string {
+  if (!assignee) return "Unassigned";
+  if (lookup.has(assignee)) return lookup.get(assignee) ?? assignee;
+
+  if (assignee === "human:forex") return "You (Telegram)";
+  if (assignee === "agent:codex") return "Codex";
+
+  return assignee;
+}
+
+type TaskCardProps = {
+  task: Task;
+  assigneeOptions: Array<{ value: string; label: string }>;
+  assigneeLookup: Map<string, string>;
+  onAssigneeChange: (taskId: Id<"tasks">, nextAssignee: AssigneeId | undefined) => void;
+  onArchive: (taskId: Id<"tasks">) => void;
+  dragHandle?: {
+    setActivatorNodeRef?: (element: HTMLElement | null) => void;
+    attributes?: DraggableAttributes;
+    listeners?: DraggableSyntheticListeners;
+  };
+};
 
 function TaskCard({
   task,
-  isDragging,
-  _onMoveTask,
-  _onArchiveTask,
-}: {
-  task: Task;
-  isDragging?: boolean;
-  _onMoveTask?: MoveTaskHandler;
-  _onArchiveTask?: (taskId: Task["_id"]) => void;
-}) {
+  assigneeOptions,
+  assigneeLookup,
+  onAssigneeChange,
+  onArchive,
+  dragHandle,
+}: TaskCardProps) {
   return (
-    <div className={`group relative rounded-xl bg-white p-4 border border-transparent hover:border-gray-100 shadow-sm transition-all ${isDragging ? "opacity-90 shadow-xl scale-[1.02] border-gray-200" : ""}`}>
-      {/* Top Header: Tags and Menu */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex gap-1.5">
-          <span className="rounded-md border border-gray-100 bg-gray-50 px-2 py-0.5 text-[11px] font-semibold text-gray-500">
-            {task.priority === "high" ? "High" : "Normal"}
-          </span>
-          <span className="rounded-md border border-gray-100 bg-gray-50 px-2 py-0.5 text-[11px] font-semibold text-gray-500">
-            {task.tags[0] || "Website"}
-          </span>
-        </div>
-        <button className="text-gray-300 hover:text-gray-500 transition-colors" title="Task options" aria-label="Task options">
-          <svg width="16" height="4" viewBox="0 0 16 4" fill="currentColor"><circle cx="2" cy="2" r="1.5" /><circle cx="8" cy="2" r="1.5" /><circle cx="14" cy="2" r="1.5" /></svg>
+    <article className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-3 shadow-[var(--shadow-card)]">
+      <div className="mb-2 flex items-start gap-2">
+        <button
+          type="button"
+          ref={(node) => dragHandle?.setActivatorNodeRef?.(node)}
+          className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-grab active:cursor-grabbing"
+          aria-label={`Drag task ${task.title}`}
+          title="Drag task"
+          {...(dragHandle?.attributes ?? {})}
+          {...(dragHandle?.listeners ?? {})}
+        >
+          <GripVertical className="h-3.5 w-3.5" />
         </button>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-[var(--text-primary)]">{task.title}</p>
+          {task.description && <p className="pt-0.5 text-xs text-[var(--text-secondary)]">{task.description}</p>}
+        </div>
+        {task.status === "done" && (
+          <button
+            type="button"
+            onClick={() => onArchive(task._id)}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+            aria-label="Archive task"
+            title="Archive task"
+          >
+            <Archive className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
 
-      {/* Body: Title and Description */}
-      <div className="mb-4">
-        <h4 className="text-[15px] font-bold leading-tight text-[#1A1A1A] mb-1">{task.title}</h4>
-        <p className="text-[12px] leading-snug text-gray-400 line-clamp-2">
-          {task.description || "Project description and details..."}
-        </p>
+      <div className="mb-2 flex flex-wrap items-center gap-1.5 text-[11px]">
+        <span className="rounded-md border border-[var(--border)] bg-[var(--bg-surface-elevated)] px-1.5 py-0.5 font-semibold text-[var(--text-secondary)]">
+          {task.priority.toUpperCase()}
+        </span>
+        {task.tags.slice(0, 2).map((tag) => (
+          <span
+            key={`${task._id}-${tag}`}
+            className="rounded-md border border-[var(--border)] bg-[var(--bg-surface-elevated)] px-1.5 py-0.5 text-[var(--text-secondary)]"
+          >
+            {tag}
+          </span>
+        ))}
       </div>
 
-      {/* Middle: Date and Stats */}
-      <div className="flex items-center gap-4 mb-4">
-        <div className="flex items-center gap-1.5 text-[11px] font-medium text-gray-400">
-          <Calendar className="h-3.5 w-3.5" />
-          <span>Start Date: <span className="text-gray-600">12/12/2024</span></span>
+      <div className="flex items-center gap-2">
+        <label className="text-[11px] text-[var(--text-secondary)]" htmlFor={`assignee-${task._id}`}>
+          Assignee
+        </label>
+        <div className="relative min-w-0 flex-1">
+          <select
+            id={`assignee-${task._id}`}
+            value={task.assignee ?? ""}
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+            onChange={(event) => {
+              const value = event.target.value;
+              onAssigneeChange(task._id, value.length > 0 ? value : undefined);
+            }}
+            className="min-h-9 w-full min-w-0 appearance-none rounded-lg border border-[var(--border)] bg-[var(--bg-surface-elevated)] px-2 pr-8 text-xs text-[var(--text-primary)]"
+          >
+            {assigneeOptions.map((option) => (
+              <option key={`${task._id}-${option.value || "none"}`} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-secondary)]" />
         </div>
       </div>
 
-      {/* Progress */}
-      <div className="mb-5">
-        <div className="flex justify-between items-center mb-1.5">
-          <span className="text-[11px] font-bold tracking-tight text-gray-400">Progress</span>
-          <span className="text-[11px] font-bold tracking-tight text-gray-900">00%</span>
-        </div>
-        <div className="h-3 w-full rounded-full bg-gray-50 overflow-hidden">
-          <div className="h-full w-[20%] bg-gray-100 progress-pattern" />
-        </div>
+      <div className="pt-2 text-[11px] text-[var(--text-secondary)]">
+        {assigneeLabel(task.assignee, assigneeLookup)} · updated {formatUpdatedAt(task.updatedAt)}
       </div>
-
-      {/* Footer: User Avatars and Icons */}
-      <div className="flex items-center justify-between pt-1">
-        <div className="avatar-group">
-          <img className="avatar-item" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="user" />
-          <img className="avatar-item" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" alt="user" />
-          <div className="avatar-item flex items-center justify-center bg-gray-900 border-none text-[9px] font-bold text-white">4+</div>
-        </div>
-
-        <div className="flex items-center gap-3 text-gray-300">
-          <div className="flex items-center gap-1">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
-            <span className="text-[12px] font-bold">2</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-            <span className="text-[12px] font-bold">2</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    </article>
   );
 }
 
-function SortableTaskCard({
-  task,
-  onMoveTask,
-  onArchiveTask,
-}: {
+type SortableTaskCardProps = TaskCardProps & {
   task: Task;
-  onMoveTask: MoveTaskHandler;
-  onArchiveTask: (taskId: Task["_id"]) => void;
-}) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: task._id,
+};
+
+function SortableTaskCard(props: SortableTaskCardProps) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
+    id: props.task._id,
   });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  };
-
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <TaskCard task={task} onMoveTask={onMoveTask} onArchiveTask={onArchiveTask} />
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={isDragging ? "opacity-60" : "opacity-100"}
+    >
+      <TaskCard
+        {...props}
+        dragHandle={{
+          setActivatorNodeRef,
+          attributes,
+          listeners,
+        }}
+      />
     </div>
   );
 }
+
+type ColumnProps = {
+  id: string;
+  label: string;
+  tasks: Task[];
+  assigneeOptions: Array<{ value: string; label: string }>;
+  assigneeLookup: Map<string, string>;
+  onAssigneeChange: (taskId: Id<"tasks">, nextAssignee: AssigneeId | undefined) => void;
+  onArchive: (taskId: Id<"tasks">) => void;
+};
 
 function Column({
   id,
-  name,
+  label,
   tasks,
-  isLoading,
-  onMoveTask,
-  onArchiveTask,
-}: {
-  id: string;
-  name: string;
-  tasks: Task[];
-  isLoading: boolean;
-  onMoveTask: MoveTaskHandler;
-  onArchiveTask: (taskId: Task["_id"]) => void;
-}) {
+  assigneeOptions,
+  assigneeLookup,
+  onAssigneeChange,
+  onArchive,
+}: ColumnProps) {
   const { setNodeRef } = useDroppable({ id });
 
   return (
-    <div className="flex w-[320px] shrink-0 flex-col rounded-xl border border-gray-100 bg-white/50 pb-4">
-      <div className="flex items-center justify-between px-5 py-5">
-        <div className="flex items-center gap-3">
-          <h3 className="text-[17px] font-bold text-[#1A1A1A]">{name}</h3>
-          <button className="text-gray-300 hover:text-gray-500" title="Column options" aria-label="Column options">
-            <svg width="16" height="4" viewBox="0 0 16 4" fill="currentColor"><circle cx="2" cy="2" r="1.5" /><circle cx="8" cy="2" r="1.5" /><circle cx="14" cy="2" r="1.5" /></svg>
-          </button>
-        </div>
-      </div>
-      <div ref={setNodeRef} className="flex-1 space-y-4 overflow-y-auto px-4" style={{ minHeight: 80 }}>
-        <SortableContext items={tasks.map((t) => t._id)} strategy={verticalListSortingStrategy}>
+    <section className="flex min-w-[280px] max-w-[320px] flex-1 flex-col rounded-xl border border-[var(--border)] bg-[var(--bg-surface-elevated)]">
+      <header className="flex items-center justify-between border-b border-[var(--border)] px-3 py-2.5">
+        <h3 className="text-sm font-semibold text-[var(--text-primary)]">{label}</h3>
+        <span className="text-xs text-[var(--text-secondary)]">{tasks.length}</span>
+      </header>
+      <div ref={setNodeRef} className="flex min-h-[140px] flex-1 flex-col gap-2 overflow-y-auto p-2">
+        <SortableContext items={tasks.map((task) => task._id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
             <SortableTaskCard
               key={task._id}
               task={task}
-              onMoveTask={onMoveTask}
-              onArchiveTask={onArchiveTask}
+              assigneeOptions={assigneeOptions}
+              assigneeLookup={assigneeLookup}
+              onAssigneeChange={onAssigneeChange}
+              onArchive={onArchive}
             />
           ))}
-          <button className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-bold text-[#1A1A1A] hover:bg-gray-50 transition-colors mt-2">
-            <span>AddTask</span>
-            <span className="text-lg leading-none">+</span>
-          </button>
         </SortableContext>
       </div>
-    </div>
+    </section>
   );
 }
 
 export function KanbanBoard() {
   const tasksByStatusQuery = useQuery(api.queries.getTasksByStatus);
-  const tasksByStatus = useMemo(() => tasksByStatusQuery ?? {}, [tasksByStatusQuery]);
-  const isLoading = tasksByStatusQuery === undefined;
+  const agentsQuery = useQuery(api.queries.getAgents);
+
+  const createTaskMutation = useMutation(api.mutations.createTask);
   const moveTaskMutation = useMutation(api.mutations.moveTask);
+  const updateTaskStatusMutation = useMutation(api.mutations.updateTaskStatus);
   const archiveTaskMutation = useMutation(api.mutations.archiveTask);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [localOverrides, setLocalOverrides] = useState<Record<string, string>>({});
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
-  );
+  const [createOpen, setCreateOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState<(typeof PRIORITIES)[number]>("normal");
+  const [assignee, setAssignee] = useState<AssigneeId | "">("");
+  const [tagsInput, setTagsInput] = useState("manual");
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [optimisticStatus, setOptimisticStatus] = useState<Record<string, string>>({});
 
-  // Merge Convex data with local drag overrides
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const assigneeOptions = useMemo(() => {
+    const agents = agentsQuery ?? [];
+    const options = [
+      { value: "", label: "Unassigned" },
+      { value: "human:forex", label: "You (Telegram)" },
+      { value: "agent:codex", label: "Codex" },
+    ];
+
+    const seen = new Set(options.map((option) => option.value));
+    for (const agent of agents) {
+      if (seen.has(agent.agentId)) continue;
+      options.push({ value: agent.agentId, label: `${agent.name} (${agent.agentId})` });
+      seen.add(agent.agentId);
+    }
+
+    return options;
+  }, [agentsQuery]);
+
+  const assigneeLookup = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const option of assigneeOptions) {
+      if (!option.value) continue;
+      map.set(option.value, option.label);
+    }
+    return map;
+  }, [assigneeOptions]);
+
   const allTasks = useMemo(() => {
-    const tasks: Task[] = [];
-    for (const status of Object.keys(tasksByStatus)) {
-      for (const task of tasksByStatus[status] ?? []) {
-        tasks.push({
+    const grouped = tasksByStatusQuery ?? {};
+    const rows: Task[] = [];
+    for (const [status, tasks] of Object.entries(grouped)) {
+      for (const task of tasks ?? []) {
+        rows.push({
           ...task,
-          status: localOverrides[task._id] ?? task.status,
+          status: optimisticStatus[task._id] ?? status,
         });
       }
     }
-    return tasks;
-  }, [tasksByStatus, localOverrides]);
+    return rows;
+  }, [tasksByStatusQuery, optimisticStatus]);
 
   const tasksByColumn = useMemo(() => {
-    const map: Record<string, Task[]> = {};
-    for (const col of columnDefs) {
-      map[col.id] = allTasks.filter((t) => t.status === col.id);
+    const byColumn: Record<string, Task[]> = Object.fromEntries(
+      STATUS_COLUMNS.map((column) => [column.id, [] as Task[]]),
+    );
+
+    for (const task of allTasks) {
+      if (!byColumn[task.status]) {
+        byColumn[task.status] = [];
+      }
+      byColumn[task.status].push(task);
     }
-    return map;
+
+    return byColumn;
   }, [allTasks]);
 
-  const activeTask = activeId ? allTasks.find((t) => t._id === activeId) : null;
+  const activeTask = activeTaskId ? allTasks.find((task) => task._id === activeTaskId) : null;
+
   const totalTasks = allTasks.length;
-  const completedTasks = tasksByColumn.review?.length ?? 0;
-  const inProgressTasks = tasksByColumn.in_progress?.length ?? 0;
-  const completion = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const inProgressCount = (tasksByColumn.assigned?.length ?? 0) + (tasksByColumn.in_progress?.length ?? 0);
+  const doneCount = tasksByColumn.done?.length ?? 0;
 
-  function handleDragStart(event: DragStartEvent) {
-    setActiveId(event.active.id as string);
-  }
-
-  function handleDragOver(event: DragOverEvent) {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeTaskObj = allTasks.find((t) => t._id === active.id);
-    if (!activeTaskObj) return;
-
-    const overColumnId = columnDefs.find((c) => c.id === over.id)?.id;
-    if (overColumnId && activeTaskObj.status !== overColumnId) {
-      setLocalOverrides((prev) => ({ ...prev, [active.id as string]: overColumnId }));
+  async function onCreateTask() {
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
+      toast.error("Task title is required");
       return;
     }
 
-    const overTask = allTasks.find((t) => t._id === over.id);
-    if (overTask && activeTaskObj.status !== overTask.status) {
-      setLocalOverrides((prev) => ({ ...prev, [active.id as string]: overTask.status }));
-    }
-  }
+    const tags = tagsInput
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0);
 
-  async function handleDragEnd(event: DragEndEvent) {
-    const { active } = event;
-    const newStatus = localOverrides[active.id as string];
-    setActiveId(null);
-    setLocalOverrides({});
-
-    if (newStatus) {
-      try {
-        await moveTaskMutation({ taskId: active.id as Id<"tasks">, status: newStatus });
-        toast.success(`Task moved to ${statusLabel[newStatus] ?? newStatus}`);
-      } catch {
-        toast.error("Could not move task");
-      }
-    }
-  }
-
-  async function moveTask(taskId: Task["_id"], status: string) {
-    setLocalOverrides((prev) => ({ ...prev, [taskId]: status }));
     try {
-      await moveTaskMutation({ taskId, status });
-      toast.success(`Task moved to ${statusLabel[status] ?? status}`);
+      await createTaskMutation({
+        title: trimmedTitle,
+        description: description.trim() || undefined,
+        priority,
+        tags: tags.length > 0 ? tags : ["manual"],
+        assignee: assignee || undefined,
+        status: assignee ? "assigned" : "inbox",
+      });
+
+      setTitle("");
+      setDescription("");
+      setPriority("normal");
+      setAssignee("");
+      setTagsInput("manual");
+      setCreateOpen(false);
+      toast.success("Task created");
+    } catch {
+      toast.error("Could not create task");
+    }
+  }
+
+  function onDragStart(event: DragStartEvent) {
+    setActiveTaskId(event.active.id as string);
+  }
+
+  function onDragOver(event: DragOverEvent) {
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeTaskRow = allTasks.find((task) => task._id === active.id);
+    if (!activeTaskRow) return;
+
+    const targetColumn = STATUS_COLUMNS.find((column) => column.id === over.id)?.id;
+    if (targetColumn && activeTaskRow.status !== targetColumn) {
+      setOptimisticStatus((previous) => ({ ...previous, [active.id as string]: targetColumn }));
+      return;
+    }
+
+    const targetTask = allTasks.find((task) => task._id === over.id);
+    if (targetTask && targetTask.status !== activeTaskRow.status) {
+      setOptimisticStatus((previous) => ({ ...previous, [active.id as string]: targetTask.status }));
+    }
+  }
+
+  async function onDragEnd(event: DragEndEvent) {
+    const { active } = event;
+    const nextStatus = optimisticStatus[active.id as string];
+
+    setActiveTaskId(null);
+    setOptimisticStatus({});
+
+    if (!nextStatus) return;
+
+    try {
+      await moveTaskMutation({ taskId: active.id as Id<"tasks">, status: nextStatus });
+      toast.success(`Task moved to ${statusLabel(nextStatus)}`);
     } catch {
       toast.error("Could not move task");
     }
   }
 
-  async function archiveTask(taskId: Task["_id"]) {
+  async function onAssigneeChange(taskId: Id<"tasks">, nextAssignee: AssigneeId | undefined) {
+    const task = allTasks.find((entry) => entry._id === taskId);
+    if (!task) return;
+
+    const nextStatus =
+      task.status === "inbox" && nextAssignee
+        ? "assigned"
+        : task.status === "assigned" && !nextAssignee
+          ? "inbox"
+          : task.status;
+
+    try {
+      await updateTaskStatusMutation({
+        taskId,
+        status: nextStatus,
+        assignee: nextAssignee,
+      });
+      toast.success("Assignee updated");
+    } catch {
+      toast.error("Could not update assignee");
+    }
+  }
+
+  async function onArchive(taskId: Id<"tasks">) {
     try {
       await archiveTaskMutation({ taskId });
-      toast.success("Done card archived");
+      toast.success("Task archived");
     } catch {
-      toast.error("Could not archive card");
+      toast.error("Could not archive task");
     }
   }
 
   return (
-    <main className="flex flex-1 flex-col overflow-hidden bg-background">
-      <div className="border-b border-white/5 bg-background px-4 py-4 md:px-5">
-        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          <div className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-mc-accent animate-pulse-dot" />
-            <span className="text-sm font-semibold tracking-wide text-text-primary">MISSION QUEUE</span>
-          </div>
-          <div className="ml-auto flex flex-wrap items-center gap-1.5 sm:gap-2">
-            <span className="mc-chip">
-              TOTAL {totalTasks}
+    <div className="flex h-full min-h-0 flex-col">
+      <header className="border-b border-[var(--border)] bg-[var(--bg-surface)] px-4 py-3 md:px-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold text-[var(--text-primary)]">Mission Queue</span>
+          <div className="ml-auto flex flex-wrap gap-1.5 text-xs">
+            <span className="rounded-md border border-[var(--border)] bg-[var(--bg-surface-elevated)] px-2 py-1 text-[var(--text-secondary)]">
+              Total {totalTasks}
             </span>
-            <span className="mc-chip">
-              IN PROGRESS {inProgressTasks}
+            <span className="rounded-md border border-[var(--border)] bg-[var(--bg-surface-elevated)] px-2 py-1 text-[var(--text-secondary)]">
+              In Progress {inProgressCount}
             </span>
-            <span className="mc-chip">
-              COMPLETE {completion}%
+            <span className="rounded-md border border-[var(--border)] bg-[var(--bg-surface-elevated)] px-2 py-1 text-[var(--text-secondary)]">
+              Done {doneCount}
             </span>
           </div>
         </div>
-        <p className="mt-1 text-xs text-text-secondary">
-          Drag tasks between columns or use quick status controls on mobile.
-        </p>
-      </div>
+
+        <div className="mt-3">
+          {!createOpen ? (
+            <button
+              type="button"
+              onClick={() => setCreateOpen(true)}
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-surface-elevated)] px-3 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-surface)]"
+            >
+              <Plus className="h-4 w-4" />
+              Add Task
+            </button>
+          ) : (
+            <div className="grid gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] p-3 md:grid-cols-[2fr_2fr_1fr_1.2fr_1.5fr_auto]">
+              <input
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder="Task title"
+                className="min-h-10 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/70"
+              />
+              <input
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Description"
+                className="min-h-10 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/70"
+              />
+              <select
+                value={priority}
+                onChange={(event) => setPriority(event.target.value as (typeof PRIORITIES)[number])}
+                className="min-h-10 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-sm text-[var(--text-primary)]"
+              >
+                {PRIORITIES.map((entry) => (
+                  <option key={entry} value={entry}>
+                    {entry.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={assignee}
+                onChange={(event) => setAssignee(event.target.value)}
+                className="min-h-10 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-sm text-[var(--text-primary)]"
+              >
+                {assigneeOptions.map((option) => (
+                  <option key={`create-${option.value || "none"}`} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <input
+                value={tagsInput}
+                onChange={(event) => setTagsInput(event.target.value)}
+                placeholder="tags,comma,separated"
+                className="min-h-10 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/70"
+              />
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={onCreateTask}
+                  className="inline-flex min-h-10 items-center rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-xs font-medium text-[var(--text-primary)]"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCreateOpen(false)}
+                  className="inline-flex min-h-10 items-center rounded-lg border border-transparent px-2 text-xs text-[var(--text-secondary)]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDragEnd={onDragEnd}
       >
-        <div className="flex flex-1 gap-3 overflow-x-auto p-4">
-          {columnDefs.map((col) => (
-            <Column
-              key={col.id}
-              id={col.id}
-              name={col.name}
-              tasks={tasksByColumn[col.id]}
-              isLoading={isLoading}
-              onMoveTask={moveTask}
-              onArchiveTask={archiveTask}
-            />
-          ))}
+        <div className="min-h-0 flex-1 overflow-x-auto px-4 py-4 md:px-5">
+          <div className="flex min-h-full gap-3">
+            {STATUS_COLUMNS.map((column) => (
+              <Column
+                key={column.id}
+                id={column.id}
+                label={column.label}
+                tasks={tasksByColumn[column.id] ?? []}
+                assigneeOptions={assigneeOptions}
+                assigneeLookup={assigneeLookup}
+                onAssigneeChange={onAssigneeChange}
+                onArchive={onArchive}
+              />
+            ))}
+          </div>
         </div>
+
         <DragOverlay>
-          {activeTask ? <TaskCard task={activeTask} isDragging /> : null}
+          {activeTask ? (
+            <div className="w-[300px] opacity-90 shadow-xl">
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-3">
+                <div className="mb-2 flex items-center gap-2">
+                  <GripVertical className="h-4 w-4 text-[var(--text-secondary)]" />
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">{activeTask.title}</p>
+                </div>
+                <p className="text-xs text-[var(--text-secondary)]">Dragging to {statusLabel(optimisticStatus[activeTask._id] ?? activeTask.status)}</p>
+              </div>
+            </div>
+          ) : null}
         </DragOverlay>
       </DndContext>
-    </main>
+    </div>
   );
 }
