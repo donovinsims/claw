@@ -447,10 +447,10 @@ function mapEnvelopeToEvents(
   const summary = summarizeMessage(role, text, toolCalls, toolName);
   const feedType = role === "toolResult" || toolCalls.length > 0 ? "status_change" : "comment";
   const roleLabel = role === "toolResult" ? "Tool" : role.charAt(0).toUpperCase() + role.slice(1);
-  const envelope = extractEnvelopeMeta(text);
+  const envelopeMeta = extractEnvelopeMeta(text);
   const isTelegramInstruction = normalizedRole === "user" &&
-    (envelope.channel === "telegram" || TELEGRAM_ENVELOPE_PATTERN.test(text));
-  const instructionText = isTelegramInstruction ? (envelope.body || text) : "";
+    (envelopeMeta.channel === "telegram" || TELEGRAM_ENVELOPE_PATTERN.test(text));
+  const instructionText = isTelegramInstruction ? (envelopeMeta.body || text) : "";
   const hasCompletionSignal = normalizedRole === "assistant" &&
     COMPLETION_SIGNAL_PATTERN.test(text.length > 0 ? text : summary);
 
@@ -474,7 +474,7 @@ function mapEnvelopeToEvents(
           rawText: truncate(text, 2000),
           sourceSessionId,
           sourceOffset,
-          channel: envelope.channel,
+          channel: envelopeMeta.channel,
           isTelegramInstruction,
           instructionText: instructionText.length > 0 ? instructionText : null,
           hasCompletionSignal,

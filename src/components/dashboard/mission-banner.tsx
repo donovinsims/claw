@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Pencil, X } from "lucide-react";
+import { toast } from "sonner";
 
 const DEFAULT_MISSION = "Build an autonomous organization of AI agents that produces value 24/7";
 
@@ -17,50 +18,66 @@ export function MissionBanner() {
 
   return (
     <>
-      <div className="relative flex h-10 shrink-0 items-center justify-center px-12" style={{ background: "linear-gradient(90deg, rgba(30,190,241,0.08) 0%, transparent 100%)" }}>
-        <p className="text-center font-serif text-sm italic text-text-primary/80">&ldquo;{text}&rdquo;</p>
+      <section className="panel-sheen relative flex min-h-11 shrink-0 items-center gap-2 border-b border-mc-border/70 bg-surface/92 px-3 md:px-4">
+        <span className="mc-chip hidden md:inline-flex">Current Mission</span>
+        <p className="line-clamp-1 min-w-0 flex-1 text-[13px] text-text-primary">{text}</p>
         <button
-          onClick={() => { setDraft(text); setEditing(true); }}
-          className="absolute right-3 top-1/2 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary/40 transition-colors hover:bg-surface/60 hover:text-text-primary md:right-4 md:min-h-0 md:min-w-0 md:rounded-full md:p-1.5 md:hover:bg-transparent"
+          onClick={() => {
+            setDraft(text);
+            setEditing(true);
+          }}
+          className="interactive-lift mc-icon-button h-9 min-h-9 w-9 min-w-9 border-transparent bg-transparent p-0 shadow-none hover:bg-surface-elevated hover:shadow-none"
+          aria-label="Edit mission statement"
         >
-          <Pencil className="h-3 w-3" />
+          <Pencil className="h-3.5 w-3.5" />
         </button>
-      </div>
+      </section>
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm md:items-center md:justify-center" onClick={() => setEditing(false)}>
+        <div
+          className="fixed inset-0 z-50 flex items-end bg-black/55 backdrop-blur-sm md:items-center md:justify-center"
+          onClick={() => setEditing(false)}
+        >
           <div
-            className="w-full rounded-t-[var(--radius-outer)] border border-mc-border bg-surface-elevated p-4 pb-[calc(env(safe-area-inset-bottom)+16px)] md:max-w-md md:rounded-[var(--radius-outer)] md:p-6"
-            onClick={(e) => e.stopPropagation()}
+            className="w-full rounded-t-[var(--radius-outer)] border border-mc-border bg-surface-elevated p-4 pb-[calc(env(safe-area-inset-bottom)+16px)] shadow-[var(--shadow-overlay)] md:max-w-xl md:rounded-[var(--radius-outer)] md:p-5"
+            onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-3 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-text-primary">Edit Mission Statement</h3>
               <button
                 onClick={() => setEditing(false)}
-                className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface hover:text-text-primary md:min-h-0 md:min-w-0 md:rounded-none md:hover:bg-transparent"
+                className="interactive-lift mc-icon-button h-9 min-h-9 w-9 min-w-9 border-transparent bg-transparent p-0 shadow-none hover:bg-surface hover:shadow-none"
+                aria-label="Close mission editor"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
+
             <textarea
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              className="w-full rounded-[var(--radius-inner)] border border-mc-border bg-surface p-3 text-sm text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-mc-cyan"
-              rows={3}
+              onChange={(event) => setDraft(event.target.value)}
+              className="mc-input min-h-[112px] w-full resize-y px-3 py-2.5 text-sm"
+              rows={4}
             />
+
             <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={() => setEditing(false)}
-                className="min-h-11 rounded-[var(--radius-inner)] bg-surface px-4 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary md:min-h-0 md:rounded-full"
+                className="interactive-lift mc-btn mc-btn-subtle"
               >
                 Cancel
               </button>
               <button
                 onClick={async () => {
-                  await updateSetting({ key: "mission_statement", value: draft });
-                  setEditing(false);
+                  try {
+                    await updateSetting({ key: "mission_statement", value: draft.trim() || DEFAULT_MISSION });
+                    toast.success("Mission statement updated");
+                    setEditing(false);
+                  } catch {
+                    toast.error("Could not save mission statement");
+                  }
                 }}
-                className="min-h-11 rounded-[var(--radius-inner)] bg-mc-cyan px-4 py-1.5 text-xs font-medium text-white md:min-h-0 md:rounded-full"
+                className="interactive-lift mc-btn mc-btn-primary"
               >
                 Save
               </button>

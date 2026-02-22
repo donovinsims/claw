@@ -76,6 +76,26 @@ Indexes:
 - `by_agentId`
 - `by_createdAt`
 
+### `bridge_ingest_dedupe`
+
+Purpose:
+- Idempotency ledger for bridge webhook ingest.
+
+Key fields:
+
+| Field | Type | Notes |
+|---|---|---|
+| `eventId` | `string` | Deterministic bridge event hash |
+| `event` | `string` | Event type (`activity`, `agent.status_changed`, etc.) |
+| `agentId` | `string` | Source agent ID |
+| `sourceSessionId` | `string` | Session file ID |
+| `sourceOffset` | `number` | Byte offset in transcript file |
+| `receivedAt` | `number` | Ingest timestamp (Unix ms) |
+
+Indexes:
+- `by_eventId`
+- `by_receivedAt`
+
 ### `standups`
 
 Purpose:

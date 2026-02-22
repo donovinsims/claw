@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "bridge": "cd bridge && CONVEX_SITE_URL=$CONVEX_SITE_URL npm run dev"
+    "bridge": "cd bridge && npm run dev"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

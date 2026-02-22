@@ -10,14 +10,29 @@ Hosted by Convex site URL (`https://<deployment>.convex.site/api/openclaw-hook`)
 
 Purpose:
 - Receive bridge events from local OpenClaw transcript processing
-- Route them to the correct Convex mutation
+- Route them through idempotent ingest mutation (`mutations.ingestBridgeEvent`)
+
+Required header:
+
+```text
+x-openclaw-signature: sha256=<hex-hmac>
+```
+
+Signature details:
+- Algorithm: HMAC SHA-256
+- Message: raw HTTP request body bytes
+- Secret: `OPENCLAW_HOOK_SECRET` (shared by bridge and Convex deployment)
+- Validation mode: `OPENCLAW_HOOK_SIGNATURE_MODE` (`enforce` or `warn`)
 
 Request body:
 
 ```json
 {
+  "eventId": "sha256hex",
   "event": "activity",
   "agentId": "jarvis",
+  "sourceSessionId": "ee4c06e6-f907-4d10-8536-9cdf4ec6dfcd",
+  "sourceOffset": 12345,
   "data": {
     "type": "comment",
     "message": "Working on task..."
@@ -38,7 +53,7 @@ Supported `event` values:
 Response:
 
 ```json
-{ "ok": true }
+{ "ok": true, "duplicated": false }
 ```
 
 ## Convex Queries
@@ -140,6 +155,12 @@ Defined in `convex/mutations.ts`.
 #### `logActivity`
 
 - Appends a new `activityEvents` row
+
+#### `ingestBridgeEvent`
+
+- Performs webhook event routing in one mutation
+- Deduplicates by `eventId` via table `bridge_ingest_dedupe`
+- Returns `{ ok: true, duplicated: boolean }`
 
 #### `updateSetting`
 

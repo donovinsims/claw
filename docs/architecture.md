@@ -33,10 +33,11 @@ flowchart LR
 
 ### 2. Backend (`convex/`)
 
-- `schema.ts` defines 5 tables:
+- `schema.ts` defines 6 tables:
   - `agents`
   - `tasks`
   - `activityEvents`
+  - `bridge_ingest_dedupe`
   - `standups`
   - `settings`
 - `queries.ts` drives dashboard reads
@@ -46,12 +47,14 @@ flowchart LR
 ### 3. Bridge (`bridge/`)
 
 - Polls `~/.openclaw/agents/*/sessions/*.jsonl` every 2 seconds
-- Parses JSONL transcript lines
+- Parses transcript envelope lines (`{ type, message }`)
+- Tracks byte offsets with durable cursor state on disk
 - Maps transcript semantics into Convex events:
-  - assistant text -> activity/comment
-  - tool execution -> activity/status change + agent working status
-  - completion language -> agent idle status
-- Pushes payloads to Convex site URL (`CONVEX_SITE_URL`)
+  - user/assistant/tool messages -> activity feed entries
+  - tool calls -> working agent status updates
+  - completion language -> idle agent status updates
+- Pushes signed payloads to Convex site URL (`CONVEX_SITE_URL`)
+- Retries transient failures and writes dead-letter entries when delivery exhausts retries
 
 ### 4. Infra (`infra/`)
 

@@ -71,24 +71,26 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm md:items-start md:justify-center md:pt-[15vh]" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end bg-black/55 backdrop-blur-sm md:items-start md:justify-center md:pt-[13vh]" onClick={onClose}>
       <div
-        className="flex h-[88dvh] w-full flex-col overflow-hidden rounded-t-[var(--radius-outer)] border border-mc-border bg-surface-elevated md:h-auto md:max-w-xl md:rounded-[var(--radius-outer)]"
+        className="flex h-[88dvh] w-full flex-col overflow-hidden rounded-t-[var(--radius-outer)] border border-mc-border bg-surface-elevated shadow-[var(--shadow-overlay)] md:h-auto md:max-w-xl md:rounded-[var(--radius-outer)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-3 border-b border-mc-border px-4 py-3">
+        <div className="flex items-center gap-3 border-b border-mc-border/75 px-4 py-3">
           <Search className="h-4 w-4 shrink-0 text-text-secondary" />
           <input
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search tasks, documents, agents..."
-            className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-secondary/50 focus:outline-none"
+            className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-secondary/60 focus:outline-none"
           />
-          <kbd className="hidden rounded-md border border-mc-border bg-surface px-1.5 py-0.5 font-mono text-[10px] text-text-secondary md:inline">ESC</kbd>
+          <kbd className="hidden rounded-md border border-mc-border bg-surface px-1.5 py-0.5 font-mono text-[10px] text-text-secondary md:inline">
+            ESC
+          </kbd>
           <button
             onClick={onClose}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary transition-colors hover:bg-surface hover:text-text-primary md:hidden"
+            className="interactive-lift mc-icon-button border-transparent bg-transparent shadow-none hover:bg-surface md:hidden"
             aria-label="Close search"
           >
             <X className="h-4 w-4" />
@@ -111,7 +113,7 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
                   {items.map((item) => (
                     <button
                       key={item.id}
-                      className="flex w-full items-start gap-3 rounded-[var(--radius-inner)] px-3 py-2 text-left transition-colors hover:bg-surface"
+                      className="interactive-lift flex w-full items-start gap-3 rounded-[var(--radius-inner)] border border-transparent px-3 py-2 text-left hover:border-mc-border/70 hover:bg-surface"
                       onClick={onClose}
                     >
                       <div className="min-w-0 flex-1">

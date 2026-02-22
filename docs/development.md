@@ -27,7 +27,9 @@ NEXT_PUBLIC_CONVEX_SITE_URL=https://YOUR_DEPLOYMENT.convex.site
 For bridge process, pass `CONVEX_SITE_URL` at runtime:
 
 ```bash
-CONVEX_SITE_URL=https://YOUR_DEPLOYMENT.convex.site npm run bridge
+CONVEX_SITE_URL=https://YOUR_DEPLOYMENT.convex.site \
+OPENCLAW_HOOK_SECRET=replace-with-shared-secret \
+npm run bridge
 ```
 
 ## Run Full Local Stack
@@ -49,7 +51,9 @@ npm run dev
 3. Optional ingest bridge
 
 ```bash
-CONVEX_SITE_URL=https://YOUR_DEPLOYMENT.convex.site npm run bridge
+CONVEX_SITE_URL=https://YOUR_DEPLOYMENT.convex.site \
+OPENCLAW_HOOK_SECRET=replace-with-shared-secret \
+npm run bridge
 ```
 
 ## Scripts
@@ -111,6 +115,7 @@ Note:
 ### Bridge exits with fatal message
 
 - Ensure `CONVEX_SITE_URL` is provided and points to `*.convex.site`.
+- Outside development, ensure `OPENCLAW_HOOK_SECRET` is set.
 
 ### Activity feed stays empty
 

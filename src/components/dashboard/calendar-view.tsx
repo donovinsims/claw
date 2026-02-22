@@ -14,16 +14,16 @@ type ScheduledBlock = {
 };
 
 const agentColors: Record<string, string> = {
-  Jarvis: "#FF9500",
-  Shuri: "#AF52DE",
-  Fury: "#FF3B30",
-  Vision: "#34C759",
-  Loki: "#007AFF",
-  Quill: "#1EBEF1",
-  Wanda: "#FF2D55",
-  Pepper: "#FF9500",
-  Friday: "#AF52DE",
-  Wong: "#00C7BE",
+  Jarvis: "#6A6A6A",
+  Shuri: "#5C5C5C",
+  Fury: "#4D4D4D",
+  Vision: "#737373",
+  Loki: "#565656",
+  Quill: "#6F6F6F",
+  Wanda: "#7A7A7A",
+  Pepper: "#666666",
+  Friday: "#4A4A4A",
+  Wong: "#606060",
 };
 
 function getWeekStart(date: Date): Date {
@@ -91,7 +91,7 @@ export function CalendarView({ open, onClose }: { open: boolean; onClose: () => 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-background" onClick={onClose}>
       <div
-        className="flex items-center justify-between border-b border-mc-border bg-surface px-4 pb-3 pt-[calc(env(safe-area-inset-top)+10px)] md:px-6 md:pt-3"
+        className="panel-sheen flex items-center justify-between border-b border-mc-border/75 bg-surface-elevated px-4 pb-3 pt-[calc(env(safe-area-inset-top)+10px)] md:px-6 md:pt-3"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-4">
@@ -99,19 +99,19 @@ export function CalendarView({ open, onClose }: { open: boolean; onClose: () => 
           <div className="flex items-center gap-1">
             <button
               onClick={() => setWeekOffset(weekOffset - 1)}
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface-elevated hover:text-text-primary md:min-h-0 md:min-w-0 md:rounded-full md:p-1 md:hover:bg-transparent"
+              className="interactive-lift mc-icon-button h-9 min-h-9 w-9 min-w-9 border-transparent bg-transparent p-0 shadow-none hover:bg-surface"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               onClick={() => setWeekOffset(0)}
-              className="min-h-11 rounded-[var(--radius-inner)] bg-surface-elevated px-3 py-1 text-xs font-medium text-text-secondary md:min-h-0 md:rounded-full"
+              className="interactive-lift mc-btn mc-btn-subtle min-h-9 rounded-[var(--radius-pill)]"
             >
               Today
             </button>
             <button
               onClick={() => setWeekOffset(weekOffset + 1)}
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface-elevated hover:text-text-primary md:min-h-0 md:min-w-0 md:rounded-full md:p-1 md:hover:bg-transparent"
+              className="interactive-lift mc-icon-button h-9 min-h-9 w-9 min-w-9 border-transparent bg-transparent p-0 shadow-none hover:bg-surface"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -122,7 +122,7 @@ export function CalendarView({ open, onClose }: { open: boolean; onClose: () => 
         </div>
         <button
           onClick={onClose}
-          className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] text-text-secondary hover:bg-surface-elevated hover:text-text-primary md:min-h-0 md:min-w-0 md:rounded-none md:hover:bg-transparent"
+          className="interactive-lift mc-icon-button h-9 min-h-9 w-9 min-w-9 border-transparent bg-transparent p-0 shadow-none hover:bg-surface"
           aria-label="Close calendar"
         >
           <X className="h-5 w-5" />
@@ -131,7 +131,7 @@ export function CalendarView({ open, onClose }: { open: boolean; onClose: () => 
 
       <div className="flex flex-1 overflow-hidden" onClick={(e) => e.stopPropagation()}>
         {/* Time axis */}
-        <div className="w-16 shrink-0 border-r border-mc-border pt-10">
+        <div className="w-16 shrink-0 border-r border-mc-border/75 pt-10">
           {Array.from({ length: END_HOUR - START_HOUR }, (_, i) => (
             <div key={i} className="relative" style={{ height: HOUR_HEIGHT }}>
               <span className="absolute -top-2 right-3 font-mono text-[10px] text-text-secondary">
@@ -146,9 +146,9 @@ export function CalendarView({ open, onClose }: { open: boolean; onClose: () => 
           {DAYS.map((day, dayIdx) => (
             <div key={day} className="relative flex-1 border-r border-mc-divider last:border-r-0">
               {/* Day header */}
-              <div className={`sticky top-0 z-10 flex flex-col items-center border-b border-mc-border bg-surface py-2 ${isCurrentWeek && dayIdx === currentDay ? "bg-mc-cyan/10" : ""}`}>
+              <div className={`sticky top-0 z-10 flex flex-col items-center border-b border-mc-border/75 bg-surface py-2 ${isCurrentWeek && dayIdx === currentDay ? "bg-mc-accent-soft" : ""}`}>
                 <span className="font-mono text-[10px] text-text-secondary">{day.toUpperCase()}</span>
-                <span className={`text-sm font-bold ${isCurrentWeek && dayIdx === currentDay ? "text-mc-cyan" : "text-text-primary"}`}>
+                <span className={`text-sm font-bold ${isCurrentWeek && dayIdx === currentDay ? "text-mc-accent" : "text-text-primary"}`}>
                   {weekDates[dayIdx].getDate()}
                 </span>
               </div>
@@ -162,8 +162,8 @@ export function CalendarView({ open, onClose }: { open: boolean; onClose: () => 
                 {/* Now line */}
                 {isCurrentWeek && dayIdx === currentDay && currentHour >= START_HOUR && currentHour < END_HOUR && (
                   <div className="absolute left-0 right-0 z-20" style={{ top: nowLineTop }}>
-                    <div className="h-0.5 bg-mc-red" />
-                    <div className="absolute -left-1 -top-1 h-2.5 w-2.5 rounded-full bg-mc-red" />
+                    <div className="h-0.5 bg-mc-accent" />
+                    <div className="absolute -left-1 -top-1 h-2.5 w-2.5 rounded-full bg-mc-accent" />
                   </div>
                 )}
 
@@ -173,16 +173,20 @@ export function CalendarView({ open, onClose }: { open: boolean; onClose: () => 
                   .map((block) => (
                     <div
                       key={block.id}
-                      className="absolute left-1 right-1 rounded-lg border px-2 py-1 text-white"
+                      className="absolute left-1 right-1 rounded-[10px] border px-2 py-1"
                       style={{
                         top: (block.startHour - START_HOUR) * HOUR_HEIGHT,
                         height: block.duration * HOUR_HEIGHT - 2,
-                        backgroundColor: block.agentColor + "33",
-                        borderColor: block.agentColor + "55",
+                        backgroundColor: `${block.agentColor}2A`,
+                        borderColor: `${block.agentColor}55`,
                       }}
                     >
-                      <div className="truncate text-[10px] font-semibold" style={{ color: block.agentColor }}>{block.title}</div>
-                      <div className="truncate text-[9px] opacity-70" style={{ color: block.agentColor }}>{block.agent} &middot; {block.duration}h</div>
+                      <div className="truncate text-[10px] font-semibold" style={{ color: block.agentColor }}>
+                        {block.title}
+                      </div>
+                      <div className="truncate text-[9px] opacity-75" style={{ color: block.agentColor }}>
+                        {block.agent} &middot; {block.duration}h
+                      </div>
                     </div>
                   ))}
               </div>

@@ -22,6 +22,7 @@ export const getTasksByStatus = query({
     const tasks = await ctx.db.query("tasks").order("desc").collect();
     const grouped: Record<string, typeof tasks> = {};
     for (const task of tasks) {
+      if (task.archivedAt !== undefined) continue;
       if (!grouped[task.status]) grouped[task.status] = [];
       grouped[task.status].push(task);
     }
@@ -72,7 +73,8 @@ export const getSetting = query({
 export const getDashboardStats = query({
   handler: async (ctx) => {
     const agents = await ctx.db.query("agents").collect();
-    const tasks = await ctx.db.query("tasks").collect();
+    const tasks = (await ctx.db.query("tasks").collect())
+      .filter((task) => task.archivedAt === undefined);
 
     return {
       agentsActive: agents.filter((a) => a.status === "working").length,

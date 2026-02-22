@@ -6,11 +6,11 @@ import { api } from "../../../convex/_generated/api";
 import { PanelRightClose, PanelRightOpen } from "lucide-react";
 
 const typeColors: Record<string, string> = {
-  task_created: "bg-text-primary",
+  task_created: "bg-mc-accent",
   comment: "bg-text-secondary",
-  decision: "bg-text-secondary/80",
-  document: "bg-text-secondary/65",
-  status_change: "bg-text-secondary/50",
+  decision: "bg-mc-warning",
+  document: "bg-mc-accent/70",
+  status_change: "bg-mc-success",
 };
 
 const filterTabs = ["All", "Tasks", "Comments", "Decisions", "Docs", "Status"];
@@ -77,15 +77,14 @@ export function LiveFeedPanel({
   if (!isOpen) {
     return (
       <aside
-        className={`flex h-full w-full shrink-0 flex-col bg-background ${
-          isMobileLayout ? "" : "border-l border-mc-border/70"
-        }`}
+        className={`flex h-full w-full shrink-0 flex-col bg-background ${isMobileLayout ? "" : "border-l border-mc-border/70"
+          }`}
       >
         <div className="flex items-center gap-2 px-3 py-4">
           {onToggle && (
             <button
               onClick={onToggle}
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98]"
+              className="interactive-lift mc-icon-button"
               aria-label="Expand live feed"
             >
               <PanelRightOpen className="h-4 w-4" />
@@ -98,25 +97,27 @@ export function LiveFeedPanel({
 
   return (
     <aside
-      className={`flex h-full w-full shrink-0 flex-col bg-background ${
-        isMobileLayout ? "" : "border-l border-mc-border/70"
-      }`}
+      className={`flex h-full w-full shrink-0 flex-col bg-background ${isMobileLayout ? "" : "border-l border-white/5"
+        }`}
     >
-      <div className="flex items-center gap-2 px-4 py-4">
-        {onToggle && (
-          <button
-            onClick={onToggle}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98]"
-            aria-label="Collapse live feed"
-          >
-            <PanelRightClose className="h-4 w-4" />
-          </button>
-        )}
-        <div className="h-2 w-2 rounded-full bg-text-primary animate-pulse-dot" />
-        <span className="text-sm font-semibold tracking-wide text-text-primary">LIVE FEED</span>
+      <div className="border-b border-white/5 px-4 py-3">
+        <div className="flex items-center gap-2">
+          {onToggle && (
+            <button
+              onClick={onToggle}
+              className="mc-icon-button hover:bg-surface/80"
+              aria-label="Collapse live feed"
+            >
+              <PanelRightClose className="h-4 w-4" />
+            </button>
+          )}
+          <div className="h-1.5 w-1.5 rounded-full bg-mc-accent animate-pulse-dot" />
+          <span className="text-[11px] font-semibold tracking-wider text-text-primary">LIVE FEED</span>
+        </div>
+        <p className="pt-1.5 text-[10px] text-text-secondary">Filter by event type or agent to isolate what matters now.</p>
       </div>
 
-      <div className="flex flex-wrap gap-2 px-4 pb-2">
+      <div className="flex flex-wrap gap-2 px-4 pb-2 border-b border-white/5 pt-3">
         {filterTabs.map((tab) => {
           const typeKey = tabToType[tab];
           const count = typeKey ? (typeCounts[typeKey] ?? 0) : allEvents.length;
@@ -124,28 +125,26 @@ export function LiveFeedPanel({
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              aria-pressed={activeTab === tab}
-              className={`rounded-[var(--radius-pill)] border px-2.5 py-1 font-mono text-[10px] font-medium shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out active:scale-[0.98] ${
-                activeTab === tab
-                  ? "border-mc-border bg-surface text-text-primary"
-                  : "border-transparent bg-surface-elevated text-text-secondary hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)]"
-              } ${isMobileLayout ? "min-h-11 px-3" : ""}`}
+              aria-pressed={activeTab === tab ? "true" : "false"}
+              className={`rounded-[var(--radius-pill)] border px-2.5 py-1 font-mono text-[9px] font-medium transition-colors ${activeTab === tab
+                ? "border-white/10 bg-card text-text-primary"
+                : "border-transparent bg-transparent text-text-secondary hover:bg-card hover:text-text-primary"
+                } ${isMobileLayout ? "min-h-11 px-3" : ""}`}
             >
-              {tab} <span className="ml-0.5 opacity-70">{count}</span>
+              {tab} <span className="ml-0.5 opacity-60">{count}</span>
             </button>
           );
         })}
       </div>
 
-      <div className="flex flex-wrap gap-2 px-4 pb-3">
+      <div className="flex flex-wrap gap-1.5 px-4 pb-3 pt-3">
         <button
           onClick={() => setSelectedAgent(null)}
-          aria-pressed={!selectedAgent}
-          className={`rounded-[var(--radius-pill)] border px-2.5 py-1 text-[10px] font-medium shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out active:scale-[0.98] ${
-            !selectedAgent
-              ? "border-mc-border bg-surface text-text-primary"
-              : "border-transparent bg-surface-elevated text-text-secondary hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)]"
-          } ${isMobileLayout ? "min-h-11 px-3" : ""}`}
+          aria-pressed={!selectedAgent ? "true" : "false"}
+          className={`rounded-[var(--radius-pill)] border px-2 py-0.5 text-[10px] font-medium transition-colors ${!selectedAgent
+            ? "border-white/10 bg-card text-text-primary"
+            : "border-transparent bg-transparent text-text-secondary hover:bg-card hover:text-text-primary"
+            } ${isMobileLayout ? "min-h-11 px-3" : ""}`}
         >
           All Agents
         </button>
@@ -153,66 +152,46 @@ export function LiveFeedPanel({
           <button
             key={name}
             onClick={() => setSelectedAgent(selectedAgent === name ? null : name)}
-            aria-pressed={selectedAgent === name}
-            className={`rounded-[var(--radius-pill)] border px-2 py-1 text-[10px] font-medium shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out active:scale-[0.98] ${
-              selectedAgent === name
-                ? "border-mc-border bg-surface text-text-primary"
-                : "border-transparent bg-surface-elevated text-text-secondary hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)]"
-            } ${isMobileLayout ? "min-h-11 px-3" : ""}`}
+            aria-pressed={selectedAgent === name ? "true" : "false"}
+            className={`rounded-[var(--radius-pill)] border px-2 py-0.5 text-[10px] font-medium transition-colors ${selectedAgent === name
+              ? "border-white/10 bg-card text-text-primary"
+              : "border-transparent bg-transparent text-text-secondary hover:bg-card hover:text-text-primary"
+              } ${isMobileLayout ? "min-h-11 px-3" : ""}`}
           >
-            {name} <span className="ml-0.5 opacity-60">{count}</span>
+            {name} <span className="ml-0.5 opacity-50">{count}</span>
           </button>
         ))}
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-4">
-        <div className="space-y-2">
+        <div className="flex flex-col">
           {events.map((event) => (
             <div
               key={event._id}
-              className="flex gap-3 rounded-[var(--radius-inner)] border border-mc-border/70 bg-surface p-3 shadow-[var(--shadow-elevated)] transition-[background-color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface-elevated hover:shadow-[var(--shadow-panel)]"
-              style={{ animation: "fadeIn 0.3s ease-out" }}
+              className="animate-enter flex gap-3 border-b border-white/5 py-2.5 transition-colors hover:bg-card group"
             >
               <div
-                className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
-                  typeColors[event.type] ?? "bg-text-secondary"
-                }`}
+                className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${typeColors[event.type] ?? "bg-text-secondary"
+                  }`}
               />
               <div className="min-w-0 flex-1">
-                <p className="text-xs leading-relaxed text-text-primary">
-                  <span className="font-semibold">{event.agentId}</span>{" "}
-                  <span className="text-text-secondary">{event.message}</span>
+                <p className="text-[11px] leading-relaxed text-text-primary">
+                  <span className="font-semibold text-text-secondary">{event.agentId}</span>{" "}
+                  <span className="text-text-secondary/90">{event.message}</span>
                 </p>
-                <span className="pt-0.5 text-[10px] font-medium text-text-secondary/70">
-                  {event.agentId} {formatTimeAgo(event.createdAt)}
+                <span className="pt-0.5 text-[9px] font-medium text-text-secondary/50">
+                  {formatTimeAgo(event.createdAt)}
                 </span>
               </div>
-              <ChevronRight className="mt-1 h-3 w-3 shrink-0 text-text-secondary/30" />
             </div>
           ))}
           {events.length === 0 && (
-            <div className="rounded-[var(--radius-inner)] border border-mc-border/70 bg-surface p-6 text-center text-xs text-text-secondary/60 shadow-[var(--shadow-elevated)]">
+            <div className="rounded-[var(--radius-inner)] border border-white/5 bg-card p-6 text-center text-xs text-text-secondary/70">
               No activity matching filters
             </div>
           )}
         </div>
       </div>
     </aside>
-  );
-}
-
-function ChevronRight({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="9 18 15 12 9 6" />
-    </svg>
   );
 }

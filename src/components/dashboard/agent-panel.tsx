@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState, type CSSProperties } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import {
@@ -31,9 +32,15 @@ const iconMap: Record<string, typeof Shield> = {
 };
 
 const levelColors: Record<string, string> = {
-  LEAD: "border border-mc-border bg-surface-elevated text-text-primary",
-  INT: "border border-mc-border bg-surface-elevated text-text-secondary",
-  SPC: "border border-mc-border bg-background text-text-secondary",
+  LEAD: "border border-gray-100 bg-gray-50 text-gray-500",
+  INT: "border border-gray-100 bg-gray-50 text-gray-400",
+  SPC: "border border-gray-100 bg-gray-50 text-gray-400",
+};
+const AGENT_STYLE_KEY = "mc.agentStyles.v4";
+
+type AgentStyle = {
+  accent: string;
+  gradient: string;
 };
 
 type AgentPanelProps = {
@@ -51,6 +58,43 @@ export function AgentPanel({
 }: AgentPanelProps) {
   const agents = useQuery(api.queries.getAgents) ?? [];
   const isMobileLayout = layout === "mobile";
+  const [agentStyles, setAgentStyles] = useState<Record<string, AgentStyle>>({});
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const raw = window.localStorage.getItem(AGENT_STYLE_KEY);
+      if (!raw) {
+        setAgentStyles({});
+        return;
+      }
+      try {
+        const parsed = JSON.parse(raw) as Record<string, AgentStyle>;
+        const sanitized = Object.fromEntries(
+          Object.entries(parsed).filter(
+            ([, style]) =>
+              typeof style === "object" &&
+              style !== null &&
+              typeof style.accent === "string" &&
+              typeof style.gradient === "string"
+          )
+        );
+        setAgentStyles(sanitized);
+      } catch {
+        window.localStorage.removeItem(AGENT_STYLE_KEY);
+      }
+    };
+
+    handleStorageChange();
+
+    window.addEventListener("storage", handleStorageChange);
+    // Custom event to sync up across components in the same window
+    window.addEventListener("agent-style-updated", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("agent-style-updated", handleStorageChange);
+    };
+  }, []);
 
   if (!isMobileLayout && !isOpen) {
     return (
@@ -59,7 +103,7 @@ export function AgentPanel({
           {onToggle && (
             <button
               onClick={onToggle}
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98]"
+              className="interactive-lift mc-icon-button"
               aria-label="Expand agent sidebar"
             >
               <PanelLeftOpen className="h-4 w-4" />
@@ -72,78 +116,94 @@ export function AgentPanel({
 
   return (
     <aside
-      className={`flex h-full shrink-0 flex-col bg-background ${
-        isMobileLayout ? "w-full" : "w-full border-r border-mc-border/70"
-      }`}
+      className={`flex h-full shrink-0 flex-col bg-white ${isMobileLayout ? "w-full" : "w-full border-r border-gray-100"
+        }`}
     >
-      <div className="flex items-center gap-2 px-4 py-4">
-        {onToggle && !isMobileLayout && (
-          <button
-            onClick={onToggle}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98]"
-            aria-label="Collapse agent sidebar"
-          >
-            <PanelLeftClose className="h-4 w-4" />
-          </button>
-        )}
-        <div className="h-2 w-2 rounded-full bg-text-primary" />
-        <span className="text-sm font-semibold tracking-wide text-text-primary">AGENTS</span>
-        <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-[var(--radius-pill)] border border-mc-border bg-surface-elevated px-1.5 font-mono text-[10px] text-text-secondary">
-          {agents.length}
-        </span>
+      <div className="border-b border-gray-50 px-6 py-5">
+        <div className="flex items-center gap-2">
+          {onToggle && !isMobileLayout && (
+            <button
+              onClick={onToggle}
+              className="text-gray-400 hover:text-gray-600 transition-colors mr-2"
+              aria-label="Collapse agent sidebar"
+            >
+              <PanelLeftClose className="h-5 w-5" />
+            </button>
+          )}
+          <div className="h-2 w-2 rounded-full bg-gray-900" />
+          <span className="text-sm font-bold tracking-tight text-[#1A1A1A]">AGENTS</span>
+          <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-gray-100 bg-gray-50 px-1.5 text-[11px] font-bold text-gray-500">
+            {agents.length}
+          </span>
+        </div>
+        <p className="pt-1.5 text-[11px] leading-snug text-gray-400 font-medium tracking-tight">Access agent detailed context and autonomous activity logs.</p>
       </div>
       <div className="flex-1 overflow-y-auto px-3 pb-4">
         <div className="flex flex-col gap-2">
           {agents.map((agent) => {
             const IconComponent = iconMap[agent.icon ?? "Bot"] ?? Bot;
+            const agentStyle = agentStyles[agent.agentId];
+            const accentStyle = agentStyle
+              ? ({
+                "--agent-gradient": agentStyle.gradient,
+                "--agent-accent": agentStyle.accent,
+              } as CSSProperties)
+              : undefined;
             return (
-              <button
+              <article
                 key={agent.agentId}
-                type="button"
-                onClick={() => onAgentClick?.(agent.agentId)}
-                disabled={!onAgentClick}
-                className="group flex w-full items-center gap-3 rounded-[var(--radius-inner)] border border-mc-border/80 bg-surface px-3 py-3 text-left shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface-elevated hover:shadow-[var(--shadow-panel)] active:scale-[0.995] disabled:cursor-default"
-                aria-label={`Open ${agent.name} details`}
+                className="space-y-1.5"
               >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-pill)] border border-mc-border bg-surface-elevated text-text-secondary transition-colors group-hover:text-text-primary">
-                  <IconComponent className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2.5">
-                    <span className="truncate text-sm font-semibold text-text-primary">
-                      {agent.name}
-                    </span>
-                    {agent.level && (
-                      <span
-                        className={`shrink-0 rounded-[var(--radius-pill)] px-2 py-0.5 font-mono text-[9px] font-medium tracking-wide ${levelColors[agent.level] ?? ""}`}
-                      >
-                        {agent.level}
+                <button
+                  type="button"
+                  onClick={() => onAgentClick?.(agent.agentId)}
+                  disabled={!onAgentClick}
+                  style={accentStyle}
+                  className="group flex w-full items-center gap-3 rounded-xl border border-transparent bg-white p-3 text-left hover:border-gray-100 hover:shadow-sm transition-all disabled:cursor-default"
+                  aria-label={`Open ${agent.name} details`}
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-100 bg-gray-50 text-gray-400 transition-colors group-hover:text-gray-600">
+                    <IconComponent className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-sm font-bold text-[#1A1A1A]">
+                        {agent.name}
                       </span>
-                    )}
+                      {agent.level && (
+                        <span
+                          className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold tracking-tight ${levelColors[agent.level] ?? ""}`}
+                        >
+                          {agent.level}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 pt-0.5">
+                      <span className="truncate text-[11px] font-medium text-gray-400">
+                        {agent.role ?? agent.agentId}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5 pt-0.5">
-                    <span className="truncate text-xs leading-relaxed text-text-secondary">
-                      {agent.role ?? agent.agentId}
+                  <div className="flex items-center gap-1.5 rounded-md border border-gray-100 bg-gray-50 px-2 py-1">
+                    <div
+                      className={`h-2 w-2 rounded-full ${agent.status === "working"
+                        ? "bg-green-500 animate-pulse"
+                        : "bg-gray-300"
+                        }`}
+                    />
+                    <span
+                      className={`text-[10px] font-bold tracking-tight ${agent.status === "working" ? "text-green-600" : "text-gray-400"
+                        }`}
+                    >
+                      {agent.status === "working" ? "WORKING" : "IDLE"}
                     </span>
                   </div>
+                </button>
+
+                <div className="flex items-center justify-end gap-1">
                 </div>
-                <div className="flex items-center gap-1.5 rounded-[var(--radius-pill)] border border-mc-border/60 bg-background px-2 py-1">
-                  <div
-                    className={`h-2 w-2 rounded-full ${
-                      agent.status === "working"
-                        ? "bg-mc-green animate-pulse-dot"
-                        : "bg-text-secondary/40"
-                    }`}
-                  />
-                  <span
-                    className={`font-mono text-[9px] font-medium ${
-                      agent.status === "working" ? "text-mc-green" : "text-text-secondary"
-                    }`}
-                  >
-                    {agent.status === "working" ? "WORKING" : "IDLE"}
-                  </span>
-                </div>
-              </button>
+
+              </article>
             );
           })}
         </div>

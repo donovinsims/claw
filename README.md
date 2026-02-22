@@ -46,7 +46,9 @@ Open [http://localhost:3000](http://localhost:3000).
 If you want live activity/task updates from local OpenClaw session logs:
 
 ```bash
-CONVEX_SITE_URL=https://YOUR_DEPLOYMENT.convex.site npm run bridge
+CONVEX_SITE_URL=https://YOUR_DEPLOYMENT.convex.site \
+OPENCLAW_HOOK_SECRET=replace-with-shared-secret \
+npm run bridge
 ```
 
 ## Features
@@ -83,6 +85,10 @@ See full architecture docs:
 | `NEXT_PUBLIC_CONVEX_URL` | Yes | Frontend | Convex deployment URL (`*.convex.cloud`) for React client. |
 | `NEXT_PUBLIC_CONVEX_SITE_URL` | No | Local config | Convex site URL (`*.convex.site`), kept for local environment consistency. |
 | `CONVEX_SITE_URL` | Yes (bridge only) | Bridge | Target Convex site host for POST `/api/openclaw-hook`. |
+| `OPENCLAW_HOOK_SECRET` | Yes (prod bridge + webhook) | Bridge + Convex HTTP | Shared HMAC secret used by `x-openclaw-signature`. |
+| `OPENCLAW_HOOK_SIGNATURE_MODE` | No | Convex HTTP | `enforce` (default outside dev) or `warn` (development rollout mode). |
+| `BRIDGE_STATE_PATH` | No | Bridge | Cursor state file (default `~/.openclaw/mission-control/bridge-cursors.json`). |
+| `BRIDGE_DEAD_LETTER_PATH` | No | Bridge | Dead-letter JSONL path (default `~/.openclaw/mission-control/dead-letter.jsonl`). |
 | `CONVEX_DEPLOYMENT` | Optional | Convex CLI | Deployment alias set by `npx convex dev`. |
 
 ## API Reference

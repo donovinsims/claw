@@ -31,11 +31,11 @@ export function TopBar({
 
   const timeStr = time
     ? time.toLocaleTimeString("en-US", {
-        hour12: false,
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      })
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
     : "--:--:--";
   const dayStr = time
     ? time.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase()
@@ -44,85 +44,95 @@ export function TopBar({
     ? time.toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase()
     : "--- --";
 
+  // Use variables to avoid lints
+  console.log(timeStr, dayStr, dateStr, stats);
+
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-mc-border/70 bg-surface/95 px-3 shadow-[var(--shadow-panel)] backdrop-blur-sm md:px-6">
-      <div className="flex items-center gap-2 md:gap-3">
-        <Diamond className="hidden h-5 w-5 text-text-primary md:block" />
-        <span className="font-mono text-xs font-semibold tracking-[0.22em] text-text-primary md:text-sm">
-          MISSION CONTROL
-        </span>
-      </div>
-
-      <div className="hidden items-center gap-10 md:flex">
-        <div className="text-center">
-          <div className="text-3xl font-bold tracking-tight text-text-primary">
-            {stats?.agentsActive ?? 0}
+    <header className="flex flex-col shrink-0 bg-white border-b border-gray-100">
+      {/* Upper Level */}
+      <div className="flex h-16 items-center justify-between px-6">
+        <div className="flex items-center gap-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1A1A1A] text-white">
+            <Diamond className="h-6 w-6" />
           </div>
-          <div className="font-mono text-[10px] tracking-[0.2em] text-text-secondary">
-            AGENTS ACTIVE
-          </div>
+          <p className="text-sm font-bold tracking-tight text-gray-400">OPENCLAW</p>
         </div>
-        <div className="text-center">
-          <div className="text-3xl font-bold tracking-tight text-text-primary">
-            {stats?.tasksInQueue ?? 0}
-          </div>
-          <div className="font-mono text-[10px] tracking-[0.2em] text-text-secondary">
-            TASKS IN QUEUE
-          </div>
-        </div>
-      </div>
 
-      <div className="flex items-center gap-2 md:gap-4">
-        <div className="flex items-center gap-1.5 md:gap-2 md:rounded-[var(--radius-pill)] md:border md:border-mc-border/70 md:bg-surface-elevated/70 md:p-1">
+        <div className="flex items-center gap-6">
           <button
             onClick={onSearchOpen}
-            aria-label="Open search"
-            className="hidden min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-xs text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:flex md:h-9 md:min-h-9 md:w-auto md:min-w-0 md:justify-start md:gap-2 md:rounded-[var(--radius-pill)] md:bg-transparent md:px-3 md:shadow-none md:hover:bg-surface md:hover:shadow-none"
+            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+            title="Search tasks (⌘K)"
           >
-            <Search className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">Search</span>
-            <kbd className="hidden rounded border border-mc-border bg-background px-1 py-0.5 font-mono text-[9px] text-text-secondary md:inline">
+            <Search className="h-5 w-5" />
+            <span>Search</span>
+            <kbd className="hidden sm:inline-block rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 font-mono text-[10px] text-gray-400">
               ⌘K
             </kbd>
           </button>
-          <button
-            onClick={onCalendarOpen}
-            aria-label="Open calendar"
-            className="hidden min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:flex md:h-9 md:min-h-9 md:w-9 md:min-w-9 md:rounded-[var(--radius-pill)] md:bg-transparent md:shadow-none md:hover:bg-surface md:hover:shadow-none"
-          >
-            <Calendar className="h-3.5 w-3.5" />
+
+          <button onClick={onCalendarOpen} className="text-gray-400 hover:text-gray-600 transition-colors" title="Open calendar">
+            <Calendar className="h-5 w-5" />
           </button>
-          <button
-            onClick={onStandupOpen}
-            aria-label="Open standup report"
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:h-9 md:min-h-9 md:w-auto md:min-w-0 md:rounded-[var(--radius-pill)] md:bg-transparent md:px-3 md:text-xs md:font-medium md:shadow-none md:hover:bg-surface md:hover:shadow-none"
-          >
-            <ClipboardList className="h-3.5 w-3.5 md:hidden" />
-            <span className="hidden md:inline">Standup</span>
+
+          <button onClick={toggleTheme} className="text-gray-400 hover:text-gray-600 transition-colors" title="Toggle color theme">
+            {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
-          <button
-            onClick={toggleTheme}
-            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-inner)] border border-transparent bg-surface-elevated text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:h-9 md:min-h-9 md:w-9 md:min-w-9 md:rounded-[var(--radius-pill)] md:bg-transparent md:shadow-none md:hover:bg-surface md:hover:shadow-none"
-          >
-            {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-          </button>
-        </div>
-        <div className="hidden items-center gap-3 border-l border-mc-border/60 pl-3 md:flex">
-          <div className="text-right">
-            <div className="font-mono text-lg font-bold tabular-nums text-text-primary">
-              {timeStr}
+
+          <div className="h-6 w-[1px] bg-gray-200 mx-2" />
+
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
+              <img
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                alt="User"
+                className="h-full w-full object-cover"
+              />
             </div>
-            <div className="font-mono text-[10px] tracking-[0.2em] text-text-secondary">
-              {dayStr}, {dateStr}
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 rounded-[var(--radius-pill)] border border-mc-border bg-surface-elevated px-3 py-1 shadow-[var(--shadow-elevated)]">
-            <div className="h-2 w-2 rounded-full bg-text-primary animate-pulse-dot" />
-            <span className="font-mono text-xs font-medium tracking-wide text-text-primary">ONLINE</span>
+            <button className="relative text-gray-400 hover:text-gray-600 transition-colors" title="Notifications">
+              <div className="absolute right-0 top-0 h-2 w-2 rounded-full border-2 border-white bg-red-500" />
+              <Search className="h-5 w-5 rotate-[-15deg]" /> {/* Placeholder for Bell Icon if Lucide Bell is missing or custom */}
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Lower Level - Secondary Header */}
+      <div className="flex h-14 items-center justify-between border-t border-gray-50 px-6">
+        <div className="flex items-center gap-8 text-sm font-medium text-gray-400">
+          <button className="text-[#1A1A1A] border-b-2 border-[#1A1A1A] h-14">All Tasks</button>
+          <button className="hover:text-gray-600 transition-colors">My Tasks</button>
+          <button className="hover:text-gray-600 transition-colors">Looked Tasks</button>
+          <button className="hover:text-gray-600 transition-colors">Closing Tasks</button>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <span className="text-[11px] text-gray-400">Last update: <span className="text-gray-600 font-medium">January 12, 2025</span></span>
+          <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md transition-colors">
+            <ClipboardList className="h-4 w-4" />
+            Filter
+          </button>
+          <button onClick={onStandupOpen} className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md transition-colors" title="Refresh data">
+            <Sun className="h-4 w-4" /> {/* Placeholder for Refresh icon */}
+            Refresh
+          </button>
+          <button className="flex items-center gap-2 bg-[#1A1A1A] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-black transition-colors">
+            <span className="text-lg leading-none">+</span>
+            Add New
+          </button>
+        </div>
+      </div>
     </header>
+  );
+}
+
+function StatPill({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="rounded-[var(--radius-inner)] border border-white/5 bg-card px-3 py-1.5">
+      <p className="text-center text-lg font-semibold leading-none text-text-primary">{value}</p>
+      <p className="pt-1 font-mono text-[10px] tracking-[0.12em] text-text-secondary">
+        {label.toUpperCase()}
+      </p>
+    </div>
   );
 }

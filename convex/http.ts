@@ -151,8 +151,11 @@ http.route({
 
     let body: unknown;
     try {
-      body = sanitizeDeep(JSON.parse(rawBody));
-    } catch {
+      // Clean rawBody of invalid escapes before parsing
+      const cleanedBody = rawBody.replace(/\\u(?![a-fA-F0-9]{4})/g, "\\\\u");
+      body = sanitizeDeep(JSON.parse(cleanedBody));
+    } catch (e) {
+      console.error(`[openclaw-hook] JSON parse error: ${e instanceof Error ? e.message : String(e)}`);
       return new Response(JSON.stringify({ ok: false, error: "Invalid JSON payload." }), {
         status: 400,
         headers: { "Content-Type": "application/json" },

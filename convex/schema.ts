@@ -30,13 +30,16 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
     completedAt: v.optional(v.number()),
+    archivedAt: v.optional(v.number()),
     sourceMessage: v.optional(v.string()),  // original Telegram message
     sessionKey: v.optional(v.string()),     // OpenClaw session key
+    sourceOffset: v.optional(v.number()),   // OpenClaw transcript byte offset
   })
     .index("by_status", ["status"])
     .index("by_assignee", ["assignee"])
     .index("by_priority", ["priority"])
-    .index("by_updatedAt", ["updatedAt"]),
+    .index("by_updatedAt", ["updatedAt"])
+    .index("by_sessionKey", ["sessionKey"]),
 
   // Activity feed — live feed panel data
   activityEvents: defineTable({
@@ -49,6 +52,18 @@ export default defineSchema({
     .index("by_type", ["type"])
     .index("by_agentId", ["agentId"])
     .index("by_createdAt", ["createdAt"]),
+
+  // Bridge dedupe ledger — prevents duplicate ingest from retries/restarts
+  bridge_ingest_dedupe: defineTable({
+    eventId: v.string(),
+    event: v.string(),
+    agentId: v.string(),
+    sourceSessionId: v.string(),
+    sourceOffset: v.number(),
+    receivedAt: v.number(),
+  })
+    .index("by_eventId", ["eventId"])
+    .index("by_receivedAt", ["receivedAt"]),
 
   // Standup snapshots — daily rollup
   standups: defineTable({
