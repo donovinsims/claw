@@ -60,6 +60,23 @@ type AgentDetailModalProps = {
   onClose: () => void;
 };
 
+function InfoHint({ text }: { text: string }) {
+  return (
+    <span className="group relative inline-flex items-center">
+      <span
+        tabIndex={0}
+        aria-label={text}
+        className="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-mc-border/60 text-[10px] font-semibold text-text-secondary transition-colors hover:border-mc-border hover:text-text-primary focus-visible:border-text-primary/45 focus-visible:text-text-primary focus-visible:outline-none"
+      >
+        ℹ
+      </span>
+      <span className="pointer-events-none absolute left-1/2 top-[calc(100%+8px)] z-20 w-56 -translate-x-1/2 rounded-[var(--radius-inner)] border border-mc-border/80 bg-surface-elevated p-2 text-[11px] leading-relaxed text-text-secondary opacity-0 shadow-[var(--shadow-panel)] transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-within:opacity-100">
+        {text}
+      </span>
+    </span>
+  );
+}
+
 export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalProps) {
   const agent = useQuery(
     api.queries.getAgentByAgentId,
@@ -195,8 +212,6 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
   const controlClass =
     "min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border/70 bg-surface px-3 py-2.5 text-sm text-text-primary shadow-[var(--shadow-elevated)] transition-[border-color,box-shadow,background-color] duration-200 ease-out placeholder:text-text-secondary/60 focus-visible:border-text-primary/35 focus-visible:shadow-[var(--shadow-panel)]";
   const selectClass = `${controlClass} appearance-none pr-10 leading-tight`;
-  const infoTextClass = "mt-1 text-[11px] leading-relaxed text-text-secondary/80";
-  const infoSymbolClass = "mr-1 font-semibold text-text-secondary";
   const buttonSubtleClass =
     "min-h-11 rounded-[var(--radius-inner)] border border-transparent bg-surface px-4 py-1.5 text-sm font-medium text-text-secondary shadow-[var(--shadow-elevated)] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out hover:border-mc-border hover:bg-surface-elevated hover:text-text-primary hover:shadow-[var(--shadow-panel)] active:scale-[0.98] md:text-xs";
   const buttonPrimaryClass =
@@ -290,13 +305,7 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
             <div>
               <div className={labelRowClass}>
                 <label className={`${fieldLabelClass} mb-0`}>LEVEL</label>
-                <span
-                  aria-hidden="true"
-                  title="Level shows seniority and scope."
-                  className={infoSymbolClass}
-                >
-                  ℹ
-                </span>
+                <InfoHint text="Level shows seniority and scope. Pick how advanced and ownership-heavy this agent's work should be." />
               </div>
               <div className="relative">
                 <select
@@ -312,21 +321,11 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary/70" />
               </div>
-              <p className={infoTextClass}>
-                <span aria-hidden="true" className={infoSymbolClass}>ℹ</span>
-                Pick how senior this agent is. This helps set expectations for complexity and ownership.
-              </p>
             </div>
             <div>
               <div className={labelRowClass}>
                 <label className={`${fieldLabelClass} mb-0`}>STATUS</label>
-                <span
-                  aria-hidden="true"
-                  title="Status shows current availability."
-                  className={infoSymbolClass}
-                >
-                  ℹ
-                </span>
+                <InfoHint text="Status shows availability: IDLE means free, WORKING means busy, ERROR means blocked, OFFLINE means paused." />
               </div>
               <div className="relative">
                 <select
@@ -341,23 +340,13 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary/70" />
               </div>
-              <p className={infoTextClass}>
-                <span aria-hidden="true" className={infoSymbolClass}>ℹ</span>
-                Set if this agent is available (`IDLE`), busy (`WORKING`), has issues (`ERROR`), or paused (`OFFLINE`).
-              </p>
             </div>
           </div>
 
           <div className="mb-4">
             <div className={labelRowClass}>
               <label className={`${fieldLabelClass} mb-0`}>MODEL</label>
-              <span
-                aria-hidden="true"
-                title="Model controls capability, speed, and cost."
-                className={infoSymbolClass}
-              >
-                ℹ
-              </span>
+              <InfoHint text="Model is the AI engine. Stronger models can handle harder work, but may run slower or cost more." />
             </div>
             <div className="relative">
               <select
@@ -372,10 +361,6 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary/70" />
             </div>
-            <p className={infoTextClass}>
-              <span aria-hidden="true" className={infoSymbolClass}>ℹ</span>
-              This is the AI engine the agent uses. Higher capability models may be slower or more expensive.
-            </p>
           </div>
 
           <div className="mb-4">
@@ -403,13 +388,7 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
           <div className="mb-4">
             <div className={labelRowClass}>
               <label className={`${fieldLabelClass} mb-0`}>SYSTEM PROMPT (SOUL.md)</label>
-              <span
-                aria-hidden="true"
-                title="System prompt sets permanent behavior rules."
-                className={infoSymbolClass}
-              >
-                ℹ
-              </span>
+              <InfoHint text="This is the agent's always-on instruction. It defines behavior, tone, and boundaries for every task." />
             </div>
             <textarea
               value={draftPrompt}
@@ -419,10 +398,6 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
               placeholder="Enter the agent's system prompt..."
               className="w-full rounded-[var(--radius-inner)] border border-mc-border/70 bg-surface p-3 text-sm font-mono text-text-primary shadow-[var(--shadow-elevated)] transition-[border-color,box-shadow,background-color] duration-200 ease-out placeholder:text-text-secondary/60 focus-visible:border-text-primary/35 focus-visible:shadow-[var(--shadow-panel)]"
             />
-            <p className="mt-1 text-[11px] leading-relaxed text-text-secondary/80">
-              <span aria-hidden="true" className={infoSymbolClass}>ℹ</span>
-              This instruction is always active for the agent and affects how it behaves across tasks.
-            </p>
             <p className="mt-1 text-[11px] leading-relaxed text-text-secondary/80">
               Saved as the agent&apos;s persistent instruction baseline.
             </p>
