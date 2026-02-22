@@ -78,7 +78,7 @@ Defined in `convex/queries.ts`.
 ### `getTasksByStatus`
 
 - Args: none
-- Returns: object keyed by status containing arrays of tasks
+- Returns: object keyed by status containing arrays of tasks (soft-archived tasks are excluded)
 
 ### `getActivityFeed`
 
@@ -113,8 +113,8 @@ Defined in `convex/queries.ts`.
 - Returns:
   - `agentsActive`
   - `agentsTotal`
-  - `tasksInQueue`
-  - `tasksCompleted`
+  - `tasksInQueue` (non-archived tasks where status is not `done`)
+  - `tasksCompleted` (non-archived tasks where status is `done`)
 
 ## Convex Mutations
 
@@ -139,6 +139,7 @@ Defined in `convex/mutations.ts`.
 - Creates task with auto status:
   - `assigned` when `assignee` is provided
   - otherwise `inbox`
+- Accepts optional ingest lineage fields (`sessionKey`, `sourceOffset`) and optional explicit `status`
 
 #### `updateTaskStatus`
 
@@ -149,6 +150,12 @@ Defined in `convex/mutations.ts`.
 #### `moveTask`
 
 - Lightweight status transition mutation used by Kanban drag-and-drop
+- Sets `completedAt` when moved to `done`
+
+#### `archiveTask`
+
+- Soft-archives a task by setting `archivedAt` and `updatedAt`
+- Archived tasks are filtered out by `getTasksByStatus` and `getDashboardStats`
 
 ### Activity / Settings / Standup
 
@@ -160,6 +167,9 @@ Defined in `convex/mutations.ts`.
 
 - Performs webhook event routing in one mutation
 - Deduplicates by `eventId` via table `bridge_ingest_dedupe`
+- For `activity` events, may auto-track Telegram instruction lifecycle:
+  - auto-create in-progress instruction tasks for Telegram user instructions
+  - auto-complete latest open Telegram instruction task on assistant completion signals
 - Returns `{ ok: true, duplicated: boolean }`
 
 #### `updateSetting`

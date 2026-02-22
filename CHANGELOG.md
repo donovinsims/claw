@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Replaced default Next.js README with project-specific onboarding and references.
+- Synced docs with current task lifecycle behavior (soft-archive, ingest lineage fields, and Telegram instruction auto-tracking).
 
 ## [0.1.0] - 2026-02-21
 

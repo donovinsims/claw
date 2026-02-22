@@ -47,14 +47,17 @@ Key fields:
 | `createdAt` | `number` | Unix ms |
 | `updatedAt` | `number` | Unix ms |
 | `completedAt` | `number?` | Set when done |
+| `archivedAt` | `number?` | Soft-archive timestamp (hidden from main queue/stats queries) |
 | `sourceMessage` | `string?` | Original message text |
 | `sessionKey` | `string?` | Upstream session key |
+| `sourceOffset` | `number?` | Byte offset from transcript source used for dedupe/lineage |
 
 Indexes:
 - `by_status`
 - `by_assignee`
 - `by_priority`
 - `by_updatedAt`
+- `by_sessionKey`
 
 ### `activityEvents`
 
@@ -140,6 +143,9 @@ Task status values used in UI and mutations:
 - `in_progress`
 - `review`
 - `done`
+
+Archiving model:
+- Archiving is implemented via `archivedAt` soft-delete semantics, not a separate status value.
 
 Agent status values used in UI and mutations:
 - `idle`

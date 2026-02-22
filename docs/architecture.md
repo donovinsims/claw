@@ -51,6 +51,7 @@ flowchart LR
 - Tracks byte offsets with durable cursor state on disk
 - Maps transcript semantics into Convex events:
   - user/assistant/tool messages -> activity feed entries
+  - Telegram envelope metadata (`isTelegramInstruction`, `hasCompletionSignal`) -> downstream auto-task tracking
   - tool calls -> working agent status updates
   - completion language -> idle agent status updates
 - Pushes signed payloads to Convex site URL (`CONVEX_SITE_URL`)
@@ -67,6 +68,7 @@ flowchart LR
 - Source of truth: Convex tables
 - Frontend state:
   - UI-only toggles, modal state, and local drag-preview state
+- Soft-archived tasks are hidden from queue/stats queries via `tasks.archivedAt`
 - Prototype/static data:
   - Calendar blocks are currently mocked in the component
   - Global search dataset is currently mocked in the component

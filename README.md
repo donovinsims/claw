@@ -53,9 +53,10 @@ npm run bridge
 
 ## Features
 
-- Live mission queue with drag-and-drop Kanban stages (`inbox` -> `done`)
+- Live mission queue with drag-and-drop Kanban stages (`inbox` -> `done`) and done-card archiving
 - Agent roster and editable agent profiles (name, role, level, status, model, icon, prompt)
 - Activity feed with event-type and agent filtering
+- Automatic Telegram instruction tracking (ingest metadata can auto-create in-progress cards and auto-complete them on completion signals)
 - Dashboard health stats (active agents, queued/completed tasks)
 - Editable mission statement banner
 - Standup report modal based on persisted standup snapshots

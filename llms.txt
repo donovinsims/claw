@@ -15,9 +15,10 @@
 
 ## Key Concepts
 - Mission queue: Task lifecycle in Kanban (`inbox`, `assigned`, `in_progress`, `review`, `done`)
+- Done-card archive flow: Completed cards can be soft-archived (`archivedAt`) and are hidden from queue/stats
 - Agent registry: Profiles and runtime states (`idle`, `working`, `error`, `offline`)
 - Activity stream: Timestamped event feed used for live operations monitoring
-- Bridge ingest: Local JSONL transcript scanning and event forwarding to Convex
+- Bridge ingest: Local JSONL transcript scanning and event forwarding to Convex, including Telegram instruction/completion metadata
 - Standup snapshot: Daily rollup of completed/in-progress/review/decision items
 
 ## Runtime Notes
