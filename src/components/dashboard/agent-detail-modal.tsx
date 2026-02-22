@@ -66,7 +66,7 @@ function InfoHint({ text }: { text: string }) {
       <span
         tabIndex={0}
         aria-label={text}
-        className="inline-flex h-5 w-5 cursor-help items-center justify-center rounded-full border border-mc-border/70 bg-surface text-[11px] font-semibold leading-none text-text-secondary shadow-[var(--shadow-elevated)] transition-[border-color,color,background-color,box-shadow] duration-150 ease-out hover:border-text-primary/35 hover:bg-surface-elevated hover:text-text-primary focus-visible:border-text-primary/45 focus-visible:bg-surface-elevated focus-visible:text-text-primary focus-visible:outline-none focus-visible:shadow-[var(--shadow-panel)]"
+        className="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-mc-border/70 bg-surface text-[10px] font-semibold leading-none text-text-secondary shadow-[var(--shadow-elevated)] transition-[border-color,color,background-color,box-shadow] duration-150 ease-out hover:border-text-primary/35 hover:bg-surface-elevated hover:text-text-primary focus-visible:border-text-primary/45 focus-visible:bg-surface-elevated focus-visible:text-text-primary focus-visible:outline-none focus-visible:shadow-[var(--shadow-panel)]"
       >
         <span aria-hidden="true" className="translate-y-[-0.5px] font-mono">
           i
@@ -210,7 +210,7 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
   const ActiveIcon = iconOptions.find((i) => i.name === draftIcon)?.icon ?? Bot;
   const activeName = draftName.trim() || agent?.name || agentId;
   const fieldLabelClass = "mb-1.5 block text-[11px] font-semibold tracking-[0.15em] text-text-secondary";
-  const labelRowClass = "mb-1.5 flex min-h-5 items-center gap-2";
+  const labelRowClass = "mb-1.5 flex min-h-5 items-center gap-1.5";
   const controlClass =
     "min-h-11 w-full rounded-[var(--radius-inner)] border border-mc-border/70 bg-surface px-3 py-2.5 text-sm text-text-primary shadow-[var(--shadow-elevated)] transition-[border-color,box-shadow,background-color] duration-200 ease-out placeholder:text-text-secondary/60 focus-visible:border-text-primary/35 focus-visible:shadow-[var(--shadow-panel)]";
   const selectClass = `${controlClass} appearance-none pr-10 leading-tight`;
