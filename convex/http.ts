@@ -1,6 +1,7 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { api } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
 
 const http = httpRouter();
 
@@ -29,9 +30,9 @@ http.route({
         break;
 
       case "task.status_changed":
-        if (data.taskId) {
+        if (typeof data.taskId === "string") {
           await ctx.runMutation(api.mutations.updateTaskStatus, {
-            taskId: data.taskId as any,
+            taskId: data.taskId as Id<"tasks">,
             status: (data.status as string) ?? "in_progress",
             assignee: agentId,
           });

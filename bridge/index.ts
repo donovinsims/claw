@@ -1,6 +1,5 @@
-import { watch } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
-import { join, basename } from "node:path";
+import { join } from "node:path";
 import { homedir } from "node:os";
 
 // Configuration
@@ -93,7 +92,7 @@ async function processNewLines(filePath: string, agentId: string) {
         });
       }
     }
-  } catch (err) {
+  } catch {
     // File might be mid-write, skip
   }
 }

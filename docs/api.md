@@ -1,0 +1,166 @@
+# API Reference
+
+This project uses Convex functions as its primary backend API surface, plus one HTTP ingest endpoint.
+
+## HTTP Endpoint
+
+### `POST /api/openclaw-hook`
+
+Hosted by Convex site URL (`https://<deployment>.convex.site/api/openclaw-hook`).
+
+Purpose:
+- Receive bridge events from local OpenClaw transcript processing
+- Route them to the correct Convex mutation
+
+Request body:
+
+```json
+{
+  "event": "activity",
+  "agentId": "jarvis",
+  "data": {
+    "type": "comment",
+    "message": "Working on task..."
+  }
+}
+```
+
+Supported `event` values:
+
+| Event | Behavior |
+|---|---|
+| `task.created` | Calls `mutations.createTask` |
+| `task.status_changed` | Calls `mutations.updateTaskStatus` when `data.taskId` is present |
+| `agent.status_changed` | Calls `mutations.updateAgentStatus` |
+| `activity` | Calls `mutations.logActivity` |
+| any other value | Logged as `system` activity event |
+
+Response:
+
+```json
+{ "ok": true }
+```
+
+## Convex Queries
+
+Defined in `convex/queries.ts`.
+
+### `getAgents`
+
+- Args: none
+- Returns: all agent documents
+
+### `getAgentByAgentId`
+
+- Args:
+
+| Name | Type | Required | Description |
+|---|---|---|---|
+| `agentId` | `string` | Yes | Logical agent ID (not Convex document ID) |
+
+- Returns: matching agent or `null`
+
+### `getTasksByStatus`
+
+- Args: none
+- Returns: object keyed by status containing arrays of tasks
+
+### `getActivityFeed`
+
+- Args:
+
+| Name | Type | Required | Description |
+|---|---|---|---|
+| `limit` | `number` | No | Max events (default 50) |
+| `type` | `string` | No | Filter by event type |
+| `agentId` | `string` | No | Filter by agent ID |
+
+- Returns: descending list by `createdAt`
+
+### `getLatestStandup`
+
+- Args: none
+- Returns: latest standup snapshot or `null`
+
+### `getSetting`
+
+- Args:
+
+| Name | Type | Required | Description |
+|---|---|---|---|
+| `key` | `string` | Yes | Setting key |
+
+- Returns: setting row or `null`
+
+### `getDashboardStats`
+
+- Args: none
+- Returns:
+  - `agentsActive`
+  - `agentsTotal`
+  - `tasksInQueue`
+  - `tasksCompleted`
+
+## Convex Mutations
+
+Defined in `convex/mutations.ts`.
+
+### Agent Mutations
+
+#### `upsertAgent`
+
+- Creates or updates an agent by `agentId`
+- Updates `lastActive` on write
+- Initializes `tasksCompleted` for new agents
+
+#### `updateAgentStatus`
+
+- Updates `status`, optional `currentTask`, and `lastActive`
+
+### Task Mutations
+
+#### `createTask`
+
+- Creates task with auto status:
+  - `assigned` when `assignee` is provided
+  - otherwise `inbox`
+
+#### `updateTaskStatus`
+
+- Updates status and optional assignee
+- Sets `completedAt` when status becomes `done`
+- Increments agent `tasksCompleted` for completed assigned tasks
+
+#### `moveTask`
+
+- Lightweight status transition mutation used by Kanban drag-and-drop
+
+### Activity / Settings / Standup
+
+#### `logActivity`
+
+- Appends a new `activityEvents` row
+
+#### `updateSetting`
+
+- Upserts key/value setting (used by mission statement editor)
+
+#### `generateStandup`
+
+- Builds daily standup snapshot from task/activity state for a given date
+
+## Frontend Usage Pattern
+
+The dashboard calls Convex functions directly from React components:
+
+```tsx
+const tasksByStatus = useQuery(api.queries.getTasksByStatus);
+const moveTask = useMutation(api.mutations.moveTask);
+```
+
+## Data Contracts
+
+Canonical contracts live in:
+
+- `convex/schema.ts`
+- generated types in `convex/_generated/dataModel.d.ts`

@@ -36,7 +36,7 @@ export const getActivityFeed = query({
     agentId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    let q = ctx.db.query("activityEvents").withIndex("by_createdAt").order("desc");
+    const q = ctx.db.query("activityEvents").withIndex("by_createdAt").order("desc");
 
     const events = await q.take(args.limit ?? 50);
 
