@@ -1,0 +1,27 @@
+# Claw Mission Control
+> Real-time mission control dashboard for OpenClaw agents, with Convex-backed state and an optional transcript ingestion bridge.
+
+## Core Files
+- [README.md]: Setup and project overview
+- [docs/index.md]: Documentation entry point
+- [src/app/page.tsx]: Main dashboard composition
+- [src/components/dashboard/]: UI panels and modals
+- [convex/schema.ts]: Data model
+- [convex/queries.ts]: Read API
+- [convex/mutations.ts]: Write API
+- [convex/http.ts]: HTTP ingest endpoint (`/api/openclaw-hook`)
+- [bridge/index.ts]: OpenClaw transcript -> Convex bridge
+- [infra/cloudflared-config.yml]: Optional tunnel config
+
+## Key Concepts
+- Mission queue: Task lifecycle in Kanban (`inbox`, `assigned`, `in_progress`, `review`, `done`)
+- Done-card archive flow: Completed cards can be soft-archived (`archivedAt`) and are hidden from queue/stats
+- Agent registry: Profiles and runtime states (`idle`, `working`, `error`, `offline`)
+- Activity stream: Timestamped event feed used for live operations monitoring
+- Bridge ingest: Local JSONL transcript scanning and event forwarding to Convex, including Telegram instruction/completion metadata
+- Standup snapshot: Daily rollup of completed/in-progress/review/decision items
+
+## Runtime Notes
+- Frontend requires `NEXT_PUBLIC_CONVEX_URL`.
+- Bridge requires `CONVEX_SITE_URL`.
+- Calendar and global search are currently prototype/mock-data components.
