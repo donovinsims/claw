@@ -78,6 +78,7 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
   const [draftStatus, setDraftStatus] = useState("idle");
   const [draftIcon, setDraftIcon] = useState("Bot");
   const [draftModel, setDraftModel] = useState(modelOptions[0]);
+  const [draftModelBackup, setDraftModelBackup] = useState("");
   const [draftPrompt, setDraftPrompt] = useState("");
   const [draftStyle, setDraftStyle] = useState<AgentVisualStyle | null>(null);
   const [saving, setSaving] = useState(false);
@@ -92,6 +93,7 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
     setDraftStatus(agent.status ?? "idle");
     setDraftIcon(agent.icon ?? "Bot");
     setDraftModel(agent.model ?? modelOptions[0]);
+    setDraftModelBackup(agent.modelBackup ?? "");
     setDraftPrompt(agent.prompt ?? "");
 
     const saved = readStoredAgentStyles();
@@ -134,6 +136,7 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
         status: draftStatus,
         icon: draftIcon || undefined,
         model: draftModel || undefined,
+        modelBackup: draftModelBackup || undefined,
         prompt: draftPrompt.trim() || undefined,
       });
 
@@ -256,6 +259,22 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
                 onChange={(event) => markDirty(setDraftModel)(event.target.value)}
                 className="min-h-10 rounded-xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] px-3 text-sm text-[var(--text-primary)]"
               >
+                {modelOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="md:col-span-2 flex flex-col gap-1 text-xs text-[var(--text-secondary)]">
+              Model Backup
+              <select
+                value={draftModelBackup}
+                onChange={(event) => markDirty(setDraftModelBackup)(event.target.value)}
+                className="min-h-10 rounded-xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] px-3 text-sm text-[var(--text-primary)]"
+              >
+                <option value="">None</option>
                 {modelOptions.map((option) => (
                   <option key={option} value={option}>
                     {option}

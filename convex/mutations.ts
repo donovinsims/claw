@@ -249,6 +249,7 @@ export const upsertAgent = mutation({
     icon: v.optional(v.string()),
     prompt: v.optional(v.string()),
     model: v.optional(v.string()),
+    modelBackup: v.optional(v.string()),
   },
   returns: v.id("agents"),
   handler: async (ctx, args) => {
@@ -282,6 +283,13 @@ export const updateAgentStatus = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     await updateAgentStatusRecord(ctx, args);
+  },
+});
+
+export const deleteAgentById = mutation({
+  args: { id: v.id("agents") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
   },
 });
 

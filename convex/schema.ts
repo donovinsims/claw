@@ -15,6 +15,7 @@ export default defineSchema({
     tasksCompleted: v.optional(v.number()),
     prompt: v.optional(v.string()),
     model: v.optional(v.string()),
+    modelBackup: v.optional(v.string()),
   })
     .index("by_agentId", ["agentId"])
     .index("by_status", ["status"]),
