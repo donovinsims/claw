@@ -5,6 +5,7 @@ import { useQuery } from "convex/react";
 import { Search } from "lucide-react";
 import { api } from "../../../convex/_generated/api";
 import type { MemoryDocument } from "@/components/dashboard/types";
+import { formatActivityEvent } from "@/lib/activity-language";
 
 function statusLabel(status: string): string {
   switch (status) {
@@ -33,8 +34,20 @@ export function MemoryScreen() {
   const activitiesQuery = useQuery(api.queries.getActivityFeed, { limit: 300 });
   const tasksByStatusQuery = useQuery(api.queries.getTasksByStatus);
   const standup = useQuery(api.queries.getLatestStandup);
+  const agentsQuery = useQuery(api.queries.getAgents);
+
   const isLoading =
-    activitiesQuery === undefined || tasksByStatusQuery === undefined || standup === undefined;
+    activitiesQuery === undefined || tasksByStatusQuery === undefined || standup === undefined || agentsQuery === undefined;
+
+  const agentNameById = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (agentsQuery) {
+      for (const agent of agentsQuery) {
+        map[agent.agentId] = agent.name || agent.agentId;
+      }
+    }
+    return map;
+  }, [agentsQuery]);
 
   const documents = useMemo<MemoryDocument[]>(() => {
     const activities = activitiesQuery ?? [];
@@ -42,11 +55,13 @@ export function MemoryScreen() {
     const docs: MemoryDocument[] = [];
 
     for (const activity of activities) {
+      const formatted = formatActivityEvent(activity, agentNameById);
       docs.push({
         id: `activity-${activity._id}`,
         kind: "activity",
-        title: `${activity.agentId} · ${activity.type}`,
-        body: activity.message,
+        title: `${formatted.agentLabel} · ${formatted.categoryLabel}`,
+        body: formatted.plainText,
+        rawMessage: activity.message,
         agentId: activity.agentId,
         timestamp: activity.createdAt,
         tags: ["activity", activity.type],
@@ -87,14 +102,14 @@ export function MemoryScreen() {
     }
 
     return docs.sort((left, right) => right.timestamp - left.timestamp);
-  }, [activitiesQuery, tasksByStatusQuery, standup]);
+  }, [activitiesQuery, tasksByStatusQuery, standup, agentNameById]);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (!needle) return documents;
 
     return documents.filter((document) => {
-      const haystack = `${document.title}\n${document.body}\n${document.agentId}\n${document.tags.join(" ")}`.toLowerCase();
+      const haystack = `${document.title}\n${document.body}\n${document.agentId}\n${document.tags.join(" ")}\n${document.rawMessage || ""}`.toLowerCase();
       return haystack.includes(needle);
     });
   }, [documents, query]);

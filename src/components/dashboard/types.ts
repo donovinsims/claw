@@ -14,7 +14,9 @@ export type MemoryDocument = {
   kind: MemoryDocumentKind;
   title: string;
   body: string;
+  rawMessage?: string;
   agentId: string;
   timestamp: number;
   tags: string[];
 };
+

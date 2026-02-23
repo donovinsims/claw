@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { Search, X } from "lucide-react";
 import { api } from "../../../convex/_generated/api";
+import { formatActivityEvent } from "@/lib/activity-language";
 
 type SearchRow = {
   id: string;
@@ -11,6 +12,7 @@ type SearchRow = {
   title: string;
   snippet: string;
   timestamp?: number;
+  rawMessage?: string;
 };
 
 function formatTimestamp(value?: number): string {
@@ -54,12 +56,19 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
       });
     }
 
+    const agentNameById: Record<string, string> = {};
+    for (const agent of agents) {
+      agentNameById[agent.agentId] = agent.name || agent.agentId;
+    }
+
     for (const event of activity) {
+      const formatted = formatActivityEvent(event, agentNameById);
       output.push({
         id: `activity-${event._id}`,
         kind: "activity",
-        title: `${event.agentId} · ${event.type}`,
-        snippet: event.message,
+        title: `${formatted.agentLabel} · ${formatted.categoryLabel}`,
+        snippet: formatted.plainText,
+        rawMessage: event.message,
         timestamp: event.createdAt,
       });
     }
@@ -72,7 +81,7 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
     if (!needle) return [];
 
     return rows.filter((row) => {
-      const content = `${row.title}\n${row.snippet}\n${row.kind}`.toLowerCase();
+      const content = `${row.title}\n${row.snippet}\n${row.kind}\n${row.rawMessage || ""}`.toLowerCase();
       return content.includes(needle);
     });
   }, [query, rows]);
