@@ -1,12 +1,12 @@
 #!/bin/zsh
 
 echo "==> Restarting OpenClaw Gateway via launchd..."
-launchctl unload ~/Library/LaunchAgents/com.openclaw.gateway.plist 2>/dev/null
-launchctl load ~/Library/LaunchAgents/com.openclaw.gateway.plist
+launchctl unload ~/Library/LaunchAgents/ai.openclaw.gateway.plist 2>/dev/null
+launchctl load ~/Library/LaunchAgents/ai.openclaw.gateway.plist
 
 echo "==> Gateway restarted. Checking launchctl status..."
 sleep 1
-launchctl list | grep com.openclaw.gateway
+launchctl list | grep ai.openclaw.gateway
 
 echo "==> Tailing last 25 lines of the gateway log..."
 echo "------------------------------------------------"

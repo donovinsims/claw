@@ -11,16 +11,14 @@ This workflow performs a deep restart of the OpenClaw Gateway service using macO
 
 ```bash
 launchctl unload ~/Library/LaunchAgents/ai.openclaw.gateway.plist 2>/dev/null || true
-pkill -f openclaw || true
-pkill -f gateway || true
 ```
 
 1. **Restart the primary Gateway service** — Uses the workspace-defined plist.
 // turbo
 
 ```bash
-launchctl unload ~/Library/LaunchAgents/com.openclaw.gateway.plist 2>/dev/null || true
-launchctl load ~/Library/LaunchAgents/com.openclaw.gateway.plist
+launchctl unload ~/Library/LaunchAgents/ai.openclaw.gateway.plist 2>/dev/null || true
+launchctl load ~/Library/LaunchAgents/ai.openclaw.gateway.plist
 ```
 
 1. **Verify status** — Ensure the process is running and healthy.
@@ -28,7 +26,7 @@ launchctl load ~/Library/LaunchAgents/com.openclaw.gateway.plist
 
 ```bash
 sleep 2
-launchctl list | grep com.openclaw.gateway
+launchctl list | grep ai.openclaw.gateway
 ```
 
 1. **Tail logs** — Check specifically for the Telegram provider starting.
