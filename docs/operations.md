@@ -20,9 +20,7 @@ The workspace includes a "New Guard" watchdog script:
 - **Path**: `scripts/watchdog.sh`
 - **Schedule**: Every 5 minutes (via `ai.openclaw.watchdog` launch agent).
 - **Checks**:
-  - OpenClaw Gateway port (18789)
-  - Telegram bot status (via `openclaw doctor`)
-  - All PM2 processes (`claw-bridge`, `claw-dashboard`, `convex-dev`, `mission-tunnel`, `gateway-tunnel`)
+  - All PM2 processes (`openclaw-gateway`, `claw-bridge`, `claw-dashboard`, `convex-dev`, `mission-tunnel`, `gateway-tunnel`)
 
 ### Unified Process Ecosystem
 
@@ -32,17 +30,18 @@ Background services are managed via `ecosystem.config.js`:
 // PM2 ecosystem configuration
 module.exports = {
   apps: [
-    { name: "claw-bridge", ... },
-    { name: "claw-dashboard", ... },
-    { name: "convex-dev", ... },
-    { name: "mission-tunnel", ... }, // cloudflared (localhost:3000)
-    { name: "gateway-tunnel", ... }  // cloudflared (localhost:18789)
+    { name: "openclaw-gateway", ... }, // OpenClaw Gateway (Port 18789)
+    { name: "claw-bridge", ... },      // OpenClaw -> Convex Bridge
+    { name: "claw-dashboard", ... },   // Next.js Dashboard (Port 3000)
+    { name: "convex-dev", ... },       // Convex Development Server
+    { name: "mission-tunnel", ... },   // cloudflared (localhost:3000)
+    { name: "gateway-tunnel", ... }    // cloudflared (localhost:18789)
   ]
 }
 ```
 
-- **Start all**: `./start.sh`
-- **Stop all**: `./stop.sh`
+- **Start all**: `./start.sh` (Runs `pm2 start ecosystem.config.js`)
+- **Stop all**: `./stop.sh` (Runs `pm2 stop all`)
 - **View logs**: `pm2 logs`
 - **Dashboard**: `pm2 monit`
 

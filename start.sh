@@ -4,24 +4,14 @@
 
 set -euo pipefail
 
-echo "==> [1/3] Ensuring OpenClaw Gateway is running (launchd)..."
-# Check if loaded, if not load it
-if ! launchctl list | grep -q ai.openclaw.gateway; then
-    launchctl load ~/Library/LaunchAgents/ai.openclaw.gateway.plist
-fi
-# Force restart to ensure fresh state
-launchctl unload ~/Library/LaunchAgents/ai.openclaw.gateway.plist 2>/dev/null || true
-launchctl load ~/Library/LaunchAgents/ai.openclaw.gateway.plist
-echo "    Gateway restarted."
-
-echo "==> [2/3] Starting background services via PM2..."
-# Export PATH to ensure PM2 can find node/npm/npx/cloudflared
+echo "==> [1/2] Starting all background services via PM2..."
+# Export PATH to ensure PM2 can find node/npm/npx/cloudflared/openclaw
 export PATH="/Users/forex/.nvm/versions/node/v24.12.0/bin:/opt/homebrew/bin:$PATH"
 
-# Apply the ecosystem configuration
+# Apply the ecosystem configuration (includes Gateway, Bridge, Dashboard, Convex, Tunnels)
 pm2 start ecosystem.config.js
 
-echo "==> [3/3] Finalizing..."
+echo "==> [2/2] Finalizing..."
 sleep 2
 pm2 list
 

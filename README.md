@@ -50,10 +50,9 @@ The workspace includes a unified management layer to handle the OpenClaw Gateway
 ```
 
 This command:
-1. Restarts the **OpenClaw Gateway** via `launchd`.
-2. Starts the **Convex Dev Server**, **Bridge**, and **Dashboard** via PM2.
-3. Initiates **Cloudflare Quick Tunnels** for public access.
-4. Generates temporary public URLs (found in `/tmp/*-tunnel.log`).
+1. Starts the **OpenClaw Gateway**, **Convex Dev Server**, **Bridge**, and **Dashboard** via PM2.
+2. Initiates **Cloudflare Quick Tunnels** for public access.
+3. Generates temporary public URLs (found in `/tmp/*-tunnel.log`).
 
 ### Stop All Services
 
@@ -63,7 +62,7 @@ This command:
 
 ### Process Monitoring (Watchdog)
 
-A high-availability watchdog runs every 5 minutes to ensure all services remain online. If any PM2 process or the Gateway fails, it will be automatically healed.
+A high-availability watchdog runs every 5 minutes to ensure all services remain online. If any PM2 process fails, it will be automatically healed.
 
 - **Logs**: `/Users/forex/.openclaw/logs/watchdog.log`
 - **Manual Check**: `pm2 list`

@@ -1,0 +1,15 @@
+{
+  "project": {
+    "description": "OpenClaw Workspace"
+  },
+  "mcpServers": {
+    "mcp-supermemory-ai": {
+      "url": "https://mcp.supermemory.ai/mcp",
+      "type": "sse",
+      "headers": {
+        "Authorization": "Bearer sm_MnSF35zq54fA26FSd7HP6x_ziVhHlaLZVskMZhafQQDMHTpWoMjxIOlpksWWRNkSlZcrFejWtTQzbqMzPBmQJPS"
+      },
+      "trust": true
+    }
+  }
+}
