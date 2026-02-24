@@ -19,10 +19,10 @@ const nextConfig: NextConfig = {
   },
   outputFileTracingRoot: path.resolve(__dirname, '../../'),
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   turbopack: {
     rules: {

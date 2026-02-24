@@ -6,6 +6,9 @@ import { Moon, Sun, Users, KanbanSquare, BookText } from "lucide-react";
 import { AgentPanel } from "@/components/dashboard/agent-panel";
 import { LiveFeedPanel } from "@/components/dashboard/live-feed-panel";
 import { AgentDetailModal } from "@/components/dashboard/agent-detail-modal";
+import { TopBar } from "@/components/dashboard/top-bar";
+import { GlobalSearch } from "@/components/dashboard/global-search";
+import { CalendarModal } from "@/components/dashboard/calendar-modal";
 import type { DashboardRoute } from "@/components/dashboard/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -47,12 +50,23 @@ export function MissionShell({ route, children }: MissionShellProps) {
   const [agentPanelOpen, setAgentPanelOpen] = useState(true);
   const [contextOpen, setContextOpen] = useState(true);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   useEffect(() => {
     const storedTheme = window.localStorage.getItem("mc.theme");
     const nextDark = storedTheme ? storedTheme === "dark" : true;
     setIsDark(nextDark);
     document.documentElement.classList.toggle("dark", nextDark);
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+        event.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
   const title = useMemo(() => {
@@ -71,6 +85,13 @@ export function MissionShell({ route, children }: MissionShellProps) {
 
   return (
     <div className="flex h-dvh flex-col bg-[var(--bg-app)] text-[var(--text-primary)]">
+      <TopBar
+        isDark={isDark}
+        toggleTheme={toggleTheme}
+        onSearchOpen={() => setSearchOpen(true)}
+        onCalendarOpen={() => setCalendarOpen(true)}
+        onStandupOpen={() => {}}
+      />
       <header className="border-b border-[var(--border)] bg-[var(--bg-surface)]/95 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-[1800px] items-center gap-4 px-4 py-3 md:px-6">
           <div className="min-w-0">
@@ -173,6 +194,9 @@ export function MissionShell({ route, children }: MissionShellProps) {
         agentId={selectedAgentId}
         onClose={() => setSelectedAgentId(null)}
       />
+
+      <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <CalendarModal open={calendarOpen} onClose={() => setCalendarOpen(false)} />
     </div>
   );
 }

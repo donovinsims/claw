@@ -126,6 +126,7 @@ export function AgentDetailModal({ open, agentId, onClose }: AgentDetailModalPro
   if (!open || !agentId || !agent) return null;
 
   async function onSave() {
+    if (!agentId || !agent) return;
     setSaving(true);
     try {
       await upsertAgent({

@@ -10,18 +10,20 @@
 
 ## Current Project State
 
-- **Environment:** macOS
-- **System:** OpenClaw Gateway with Telegram Bot integration (`@anticlawd_1bot`)
-- **Key Capabilities Installed:**
-  - Scrapling MCP Server (for advanced web scraping, CF bypass)
-  - mcporter CLI (for MCP server management)
-  - Local Supermemory and memory backups enabled
+- **Environment**: macOS
+- **System**: OpenClaw Gateway + Mission Control Dashboard + Convex Backend.
+- **Service Management**: Unified via PM2 (`ecosystem.config.js`) and `launchd`.
+- **Availability**: "New Guard" watchdog script (`scripts/watchdog.sh`) ensures 24/7 uptime for Telegram and Dashboard services.
+- **Key Capabilities**:
+  - Scrapling MCP Server (advanced scraping).
+  - High-availability Quick Tunnels (Dashboard & Gateway).
+  - Triple-Lock Persistence Strategy active (`MEMORY.md`, `SOUL.md`, `CONTEXT_CHECKPOINT.md`).
 
 ## Active Goals
 
-- Implementing the "Triple-Lock Persistence Strategy" (Crash-Proofing).
-- Ensuring seamless recovery between gateway restarts.
-- Refining marketing build sequences and deploying new external skills.
+- **Stability**: Hardening the "New Guard" system and monitoring logs for any edge-case failures.
+- **Integration**: Wiring mock dashboard components (Calendar/Search) to the live Convex backend.
+- **Expansion**: Deploying and vetting new external skills via the Skill Extractor agent.
 
 ## What to do if you are asked to "Check the recovery guide"
 

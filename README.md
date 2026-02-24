@@ -39,17 +39,34 @@ npx convex dev
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+## Unified Stack Management
 
-### 5. Optional: start OpenClaw -> Convex bridge
+The workspace includes a unified management layer to handle the OpenClaw Gateway, Mission Control Dashboard, Convex backend, and Cloudflare Tunnels.
 
-If you want live activity/task updates from local OpenClaw session logs:
+### Start All Services
 
 ```bash
-CONVEX_SITE_URL=https://YOUR_DEPLOYMENT.convex.site \
-OPENCLAW_HOOK_SECRET=replace-with-shared-secret \
-npm run bridge
+./start.sh
 ```
+
+This command:
+1. Restarts the **OpenClaw Gateway** via `launchd`.
+2. Starts the **Convex Dev Server**, **Bridge**, and **Dashboard** via PM2.
+3. Initiates **Cloudflare Quick Tunnels** for public access.
+4. Generates temporary public URLs (found in `/tmp/*-tunnel.log`).
+
+### Stop All Services
+
+```bash
+./stop.sh
+```
+
+### Process Monitoring (Watchdog)
+
+A high-availability watchdog runs every 5 minutes to ensure all services remain online. If any PM2 process or the Gateway fails, it will be automatically healed.
+
+- **Logs**: `/Users/forex/.openclaw/logs/watchdog.log`
+- **Manual Check**: `pm2 list`
 
 ## Features
 

@@ -10,6 +10,42 @@ Operational notes for running Claw and related bridge/tunnel services.
 | Convex site | `https://<deployment>.convex.site` | HTTP actions (including `/api/openclaw-hook`) |
 | OpenClaw gateway | `localhost:18789` | Optional external OpenClaw gateway endpoint |
 
+## Service Management (PM2 & Watchdog)
+
+OpenClaw Workspace uses **PM2** and **macOS launchd** for process supervision.
+
+### High-Availability Watchdog
+
+The workspace includes a "New Guard" watchdog script:
+- **Path**: `scripts/watchdog.sh`
+- **Schedule**: Every 5 minutes (via `ai.openclaw.watchdog` launch agent).
+- **Checks**:
+  - OpenClaw Gateway port (18789)
+  - Telegram bot status (via `openclaw doctor`)
+  - All PM2 processes (`claw-bridge`, `claw-dashboard`, `convex-dev`, `mission-tunnel`, `gateway-tunnel`)
+
+### Unified Process Ecosystem
+
+Background services are managed via `ecosystem.config.js`:
+
+```javascript
+// PM2 ecosystem configuration
+module.exports = {
+  apps: [
+    { name: "claw-bridge", ... },
+    { name: "claw-dashboard", ... },
+    { name: "convex-dev", ... },
+    { name: "mission-tunnel", ... }, // cloudflared (localhost:3000)
+    { name: "gateway-tunnel", ... }  // cloudflared (localhost:18789)
+  ]
+}
+```
+
+- **Start all**: `./start.sh`
+- **Stop all**: `./stop.sh`
+- **View logs**: `pm2 logs`
+- **Dashboard**: `pm2 monit`
+
 ## Bridge Operation
 
 Bridge file: `bridge/index.ts`

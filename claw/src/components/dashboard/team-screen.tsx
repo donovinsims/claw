@@ -1,74 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { useMutation, useQuery } from "convex/react";
-import { toast } from "sonner";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { readStoredAgentStyles, resolveAgentStyle } from "@/components/dashboard/agent-visuals";
 import type { AgentVisualStyle } from "@/components/dashboard/types";
-
-const TEAM_SEED = [
-  {
-    agentId: "agent:codex",
-    name: "Codex",
-    role: "Lead Engineer",
-    level: "LEAD",
-    status: "working",
-    icon: "Code",
-    model: "google-antigravity/claude-opus-4-6-thinking",
-    prompt: "Lead implementation, planning, and quality hardening across the stack.",
-  },
-  {
-    agentId: "agent:dev-frontend",
-    name: "Frontend Engineer",
-    role: "UI Systems Developer",
-    level: "SPC",
-    status: "idle",
-    icon: "Palette",
-    model: "google-antigravity/gemini-3-flash",
-    prompt: "Build responsive interfaces, component systems, and interaction polish.",
-  },
-  {
-    agentId: "agent:dev-backend",
-    name: "Backend Engineer",
-    role: "Data and API Developer",
-    level: "SPC",
-    status: "idle",
-    icon: "Shield",
-    model: "google-antigravity/claude-opus-4-5-thinking",
-    prompt: "Handle backend integration, data contracts, and service reliability.",
-  },
-  {
-    agentId: "agent:designer-ui",
-    name: "Product Designer",
-    role: "UI/UX Designer",
-    level: "SPC",
-    status: "idle",
-    icon: "Sparkles",
-    model: "google-antigravity/gemini-3-flash",
-    prompt: "Own visual systems, information hierarchy, and interaction design quality.",
-  },
-  {
-    agentId: "agent:writer-content",
-    name: "Content Writer",
-    role: "Documentation and Narrative",
-    level: "SPC",
-    status: "idle",
-    icon: "Pen",
-    model: "google-antigravity/gemini-3-flash",
-    prompt: "Produce structured content, docs, and clear communication artifacts.",
-  },
-  {
-    agentId: "agent:qa-security",
-    name: "QA + Security",
-    role: "Verification and Risk Control",
-    level: "SPC",
-    status: "idle",
-    icon: "Eye",
-    model: "google-antigravity/claude-opus-4-5-thinking",
-    prompt: "Run quality checks, regression reviews, and security risk assessments.",
-  },
-] as const;
 
 type TeamGroup = {
   title: string;
@@ -109,10 +45,8 @@ function statusDotClass(status: string): string {
 
 export function TeamScreen() {
   const agents = useQuery(api.queries.getAgents);
-  const upsertAgent = useMutation(api.mutations.upsertAgent);
 
   const [styles, setStyles] = useState<Record<string, AgentVisualStyle>>({});
-  const seedTriggeredRef = useRef(false);
 
   useEffect(() => {
     const syncStyles = () => setStyles(readStoredAgentStyles());
@@ -126,27 +60,6 @@ export function TeamScreen() {
       window.removeEventListener("agent-style-updated", syncStyles);
     };
   }, []);
-
-  useEffect(() => {
-    if (!agents || seedTriggeredRef.current) return;
-
-    seedTriggeredRef.current = true;
-    const existingAgentIds = new Set(agents.map((agent) => agent.agentId));
-    const missing = TEAM_SEED.filter((entry) => !existingAgentIds.has(entry.agentId));
-
-    if (missing.length === 0) return;
-
-    void (async () => {
-      try {
-        for (const seed of missing) {
-          await upsertAgent(seed);
-        }
-        toast.success(`Seeded ${missing.length} team role${missing.length === 1 ? "" : "s"}`);
-      } catch {
-        toast.error("Could not seed team roles");
-      }
-    })();
-  }, [agents, upsertAgent]);
 
   const groups = useMemo<TeamGroup[]>(() => {
     const rows = agents ?? [];
