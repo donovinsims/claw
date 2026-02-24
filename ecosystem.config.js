@@ -1,6 +1,15 @@
 module.exports = {
   apps: [
     {
+      name: "openclaw-gateway",
+      script: "/Users/forex/.nvm/versions/node/v24.12.0/bin/openclaw",
+      args: "gateway run",
+      restart_delay: 5000,
+      autorestart: true,
+      out_file: "/tmp/openclaw-gateway.out.log",
+      error_file: "/tmp/openclaw-gateway.err.log",
+    },
+    {
       name: "claw-bridge",
       script: "npm",
       args: "run dev",
