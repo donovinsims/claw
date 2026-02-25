@@ -6,6 +6,10 @@ env.txt
 
 # Large cloned repos (has its own git)
 openclaw-antigravity1/
+superpowers/
+marketingskills/
+kibo/
+get-shit-done/
 
 # Config with possible secrets
 config/mcporter.json

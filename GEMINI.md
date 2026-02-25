@@ -21,8 +21,6 @@ Available Models in OpenClaw (`~/.openclaw/openclaw.json`):
 1. `google-antigravity/gemini-3-flash` (Primary)
 2. `moonshot/kimi-k2.5`
 3. `ollama/llama3.2` (Local)
-4. `ollama/llama3` (Local)
-5. `ollama/donovin/vibes` (Local)
 
 ## Active Agents
 
