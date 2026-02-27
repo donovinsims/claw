@@ -143,7 +143,9 @@ export function MemoryScreen() {
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="text-sm font-semibold text-[var(--text-primary)]">{document.title}</p>
-                  <p className="pt-1 text-xs text-[var(--text-secondary)] whitespace-pre-line">{document.body}</p>
+                  <div className="typography max-w-none pt-1 text-[var(--text-secondary)]">
+                    <p className="m-0 text-xs whitespace-pre-line">{document.body}</p>
+                  </div>
                 </div>
                 <div className="text-right text-[11px] text-[var(--text-secondary)]">
                   <p>{document.kind.toUpperCase()}</p>

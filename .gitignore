@@ -9,3 +9,5 @@ openclaw-antigravity1/
 
 # Config with possible secrets
 config/mcporter.json
+node_modules
+*.log

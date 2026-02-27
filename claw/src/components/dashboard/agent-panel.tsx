@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { readStoredAgentStyles, resolveAgentStyle } from "@/components/dashboard/agent-visuals";
 import type { AgentVisualStyle } from "@/components/dashboard/types";
+import { Status, StatusIndicator, StatusLabel, type StatusProps } from "@/components/kibo-ui/status";
 
 const iconMap: Record<string, typeof Shield> = {
   Shield,
@@ -53,14 +54,16 @@ function statusLabel(status: string): string {
   }
 }
 
-function statusDotClass(status: string): string {
+function statusVariant(status: string): StatusProps["status"] {
   switch (status) {
     case "working":
-      return "bg-[var(--status-success)]";
+      return "online";
     case "error":
-      return "bg-[var(--status-error)]";
+      return "degraded";
+    case "offline":
+      return "offline";
     default:
-      return "bg-[var(--text-secondary)]/35";
+      return "maintenance";
   }
 }
 
@@ -200,17 +203,10 @@ export function AgentPanel({
                     </p>
                   </div>
 
-                  <div
-                    className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-semibold"
-                    style={{
-                      background: "var(--agent-card-chip-bg)",
-                      borderColor: "var(--agent-card-chip-border)",
-                      color: "var(--agent-card-fg)",
-                    }}
-                  >
-                    <span className={`h-2 w-2 rounded-full ${statusDotClass(agent.status)}`} />
-                    <span>{statusLabel(agent.status)}</span>
-                  </div>
+                  <Status status={statusVariant(agent.status)}>
+                    <StatusIndicator />
+                    <StatusLabel>{statusLabel(agent.status)}</StatusLabel>
+                  </Status>
                 </div>
               </button>
             );

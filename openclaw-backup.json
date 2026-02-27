@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.2.21-2",
+    "lastTouchedAt": "2026-02-27T22:11:28.491Z"
+  },
+  "auth": {
+    "profiles": {
+      "google-antigravity:donovinsims@gmail.com": {
+        "provider": "google-antigravity",
+        "mode": "oauth"
+      },
+      "google-antigravity:emaildonovin@gmail.com": {
+        "provider": "google-antigravity",
+        "mode": "oauth"
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "google-antigravity/gemini-3-flash"
+      },
+      "models": {
+        "google-antigravity/gemini-3-flash": {},
+        "google-antigravity/gemini-3-pro-low": {},
+        "google-antigravity/gemini-3-pro-high": {},
+        "google-antigravity/claude-opus-4-5-thinking": {},
+        "google-antigravity/claude-opus-4-6": {},
+        "google-antigravity/claude-opus-4-6-thinking": {},
+        "google-antigravity/claude-sonnet-4-5": {},
+        "google-antigravity/claude-sonnet-4-5-thinking": {},
+        "google-antigravity/gpt-oss-120b-medium": {},
+        "moonshot/kimi-k2.5": {},
+        "ollama/qwen3.5:cloud": {},
+        "ollama/glm-5:cloud": {},
+        "ollama/qwen3-coder-next:cloud": {},
+        "ollama/kimi-k2.5:cloud": {},
+        "ollama/deepseek-v3.2:cloud": {},
+        "ollama/minimax-m2:cloud": {},
+        "ollama/donovin/vibes:latest": {},
+        "ollama/llama3.2:latest": {}
+      },
+      "workspace": "./clawd",
+      "compaction": {
+        "mode": "safeguard"
+      }
+    },
+    "list": [
+      {
+        "id": "lead",
+        "name": "Lead Agent",
+        "workspace": "~/.openclaw/workspaces/lead"
+      },
+      {
+        "id": "specialist-1",
+        "name": "Steve's Intern",
+        "workspace": "~/.openclaw/workspaces/specialist-1",
+        "model": {
+          "primary": "ollama/qwen3.5:cloud"
+        }
+      },
+      {
+        "id": "specialist-2",
+        "name": "Specialist 2",
+        "workspace": "~/.openclaw/workspaces/specialist-2"
+      },
+      {
+        "id": "specialist-3",
+        "name": "Specialist 3",
+        "workspace": "~/.openclaw/workspaces/specialist-3"
+      }
+    ]
+  },
+  "bindings": [
+    {
+      "agentId": "lead",
+      "match": {
+        "channel": "telegram",
+        "accountId": "default"
+      }
+    },
+    {
+      "agentId": "specialist-1",
+      "match": {
+        "channel": "telegram",
+        "accountId": "intern"
+      }
+    }
+  ],
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "session": {
+    "dmScope": "per-peer"
+  },
+  "channels": {
+    "telegram": {
+      "dmPolicy": "pairing",
+      "groupPolicy": "allowlist",
+      "streaming": true,
+      "accounts": {
+        "default": {
+          "dmPolicy": "pairing",
+          "botToken": "8257359208:AAE8YT-COWn4Oycbm79EBTzN9K_DO8WSGw0",
+          "groupPolicy": "allowlist",
+          "streaming": false
+        },
+        "intern": {
+          "dmPolicy": "pairing",
+          "botToken": "8690632328:AAFRz9UuF0Rdl1UwJYkv0LL1gbdRAb9pMXw",
+          "groupPolicy": "allowlist",
+          "streaming": false
+        }
+      }
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "auth": {
+      "mode": "token",
+      "token": "6b6feb4c6d8153f9c48fc6521bdd82917347975fcf3dc779"
+    }
+  },
+  "plugins": {
+    "entries": {
+      "google-antigravity-auth": {
+        "enabled": true
+      },
+      "telegram": {
+        "enabled": true
+      },
+      "memory-core": {
+        "enabled": true
+      }
+    }
+  }
+}
