@@ -11,3 +11,6 @@ openclaw-antigravity1/
 config/mcporter.json
 node_modules
 *.log
+.next/
+claw/.next/
+**/.DS_Store
