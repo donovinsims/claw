@@ -14,3 +14,4 @@ node_modules
 .next/
 claw/.next/
 **/.DS_Store
+twitter-agent/.env
