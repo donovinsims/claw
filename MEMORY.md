@@ -22,6 +22,7 @@ _This is the primary cortical layer of the agent. If it's not here, it didn't ha
 - **Tone**: Professional, direct, highly competent, no performative filler.
 - **Persistence**: Strict adherence to the "Triple-Lock Persistence" strategy (`MEMORY.md`, `SOUL.md`, `CONTEXT_CHECKPOINT.md`).
 - **Safety**: Always audit external skills before installation.
+- **Things 3 Hard Rule (2026-03-03)**: Never write directly to the Things database file. Allowed write methods only: Things app UI, Things URL scheme (`things` CLI write commands), AppleScript, Apple Shortcuts, or Mail to Things.
 
 ## Known Issues & Backlog
 - [ ] Memory search embedding provider (OpenAI/Google) needs consistent auth in local config.
