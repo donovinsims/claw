@@ -1,0 +1,107 @@
+{
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "bailian": {
+        "baseUrl": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
+        "apiKey": "<REDACTED>",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "qwen-plus-us",
+            "name": "qwen-plus",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 131072,
+            "maxTokens": 32768
+          },
+          {
+            "id": "qwen-flash-us",
+            "name": "qwen-flash",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 100000,
+            "maxTokens": 32768
+          },
+          {
+            "id": "qwen3-max",
+            "name": "qwen3-max",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 128000,
+            "maxTokens": 32768
+          }
+        ]
+      },
+      "moonshot": {
+        "baseUrl": "https://api.moonshot.cn/v1",
+        "apiKey": "<REDACTED>",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "moonshot-v1-32k",
+            "name": "kimi-32k",
+            "input": [
+              "text"
+            ],
+            "contextWindow": 32768
+          },
+          {
+            "id": "moonshot-v1-128k",
+            "name": "kimi-128k",
+            "input": [
+              "text"
+            ],
+            "contextWindow": 128000
+          }
+        ]
+      },
+      "kimi_coding": {
+        "baseUrl": "https://api.kimi.com/coding/v1",
+        "apiKey": "<REDACTED>",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "kimi-for-coding",
+            "name": "kimi-coding",
+            "input": [
+              "text"
+            ],
+            "contextWindow": 262144,
+            "maxTokens": 32768
+          }
+        ]
+      }
+    }
+  },
+  "agents_defaults_model": {
+    "google-antigravity/gemini-3-flash": {},
+    "google-antigravity/gemini-3-pro-low": {},
+    "google-antigravity/gemini-3-pro-high": {},
+    "google-antigravity/claude-opus-4-5-thinking": {},
+    "google-antigravity/claude-opus-4-6-thinking": {},
+    "google-antigravity/claude-sonnet-4-5": {},
+    "google-antigravity/claude-sonnet-4-5-thinking": {},
+    "google-antigravity/gpt-oss-120b-medium": {},
+    "moonshot/kimi-k2.5": {},
+    "ollama/qwen3.5:cloud": {},
+    "ollama/glm-5:cloud": {},
+    "ollama/qwen3-coder-next:cloud": {},
+    "ollama/kimi-k2.5:cloud": {},
+    "ollama/deepseek-v3.2:cloud": {},
+    "ollama/minimax-m2:cloud": {},
+    "ollama/donovin/vibes:latest": {},
+    "ollama/llama3.2:latest": {},
+    "bailian/qwen3-max": {},
+    "moonshot/moonshot-v1-32k": {},
+    "bailian/qwen-plus-us": {},
+    "kimi_coding/kimi-for-coding": {},
+    "openai-codex/gpt-5.3-codex": {}
+  }
+}
